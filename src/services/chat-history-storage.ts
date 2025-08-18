@@ -12,7 +12,7 @@ import {
 const STORAGE_KEY = 'live-api-chat-history';
 const DEFAULT_SETTINGS = {
   maxSessions: 50,
-  autoTranscribe: true,
+  autoTranscribe: false,
   retentionDays: 30,
   audioQuality: 'medium' as const,
 };
