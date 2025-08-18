@@ -78,7 +78,7 @@ function ControlTray({
 
   const { client, connected, connect, disconnect, volume } =
     useLiveAPIContext();
-  const { recordAudioChunk } = useChatHistory();
+  const { recordAudioChunk, startUserUtterance } = useChatHistory();
 
   useEffect(() => {
     if (!connected && connectButtonRef.current) {
@@ -93,7 +93,15 @@ function ControlTray({
   }, [inVolume]);
 
   useEffect(() => {
+    let hasStartedUtterance = false;
+    
     const onData = (base64: string) => {
+      // Start user utterance on first audio chunk
+      if (!hasStartedUtterance) {
+        startUserUtterance();
+        hasStartedUtterance = true;
+      }
+      
       client.sendRealtimeInput([
         {
           mimeType: 'audio/pcm;rate=16000',
@@ -103,15 +111,18 @@ function ControlTray({
       // Record audio chunk for chat history
       recordAudioChunk(base64);
     };
+    
     if (connected && !muted && audioRecorder) {
       audioRecorder.on('data', onData).on('volume', setInVolume).start();
     } else {
       audioRecorder.stop();
+      hasStartedUtterance = false;
     }
+    
     return () => {
       audioRecorder.off('data', onData).off('volume', setInVolume);
     };
-  }, [connected, client, muted, audioRecorder]);
+  }, [connected, client, muted, audioRecorder, startUserUtterance]);
 
   useEffect(() => {
     if (videoRef.current) {

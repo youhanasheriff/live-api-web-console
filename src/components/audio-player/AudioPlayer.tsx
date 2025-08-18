@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './audio-player.scss';
 
 interface AudioPlayerProps {
@@ -36,6 +36,38 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [totalDuration, setTotalDuration] = useState(duration || 0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper function to create WAV header
+  const createWavHeader = useCallback((dataLength: number): Uint8Array => {
+    const sampleRate = 16000;
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * numChannels * bitsPerSample / 8;
+    const blockAlign = numChannels * bitsPerSample / 8;
+    const header = new ArrayBuffer(44);
+    const view = new DataView(header);
+    
+    // RIFF header
+    view.setUint32(0, 0x52494646, false); // 'RIFF'
+    view.setUint32(4, 36 + dataLength, true); // file size
+    view.setUint32(8, 0x57415645, false); // 'WAVE'
+    
+    // fmt chunk
+    view.setUint32(12, 0x666d7420, false); // 'fmt '
+    view.setUint32(16, 16, true); // chunk size
+    view.setUint16(20, 1, true); // audio format (PCM)
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    
+    // data chunk
+    view.setUint32(36, 0x64617461, false); // 'data'
+    view.setUint32(40, dataLength, true);
+    
+    return new Uint8Array(header);
+  }, []);
 
   // Create audio URL from base64 data
   // Convert PCM to WAV if necessary
@@ -85,39 +117,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       setError('Failed to process audio data');
       return null;
     }
-  }, [audioData, mimeType]);
-  
-  // Helper function to create WAV header
-  const createWavHeader = (dataLength: number): Uint8Array => {
-    const sampleRate = 16000;
-    const numChannels = 1;
-    const bitsPerSample = 16;
-    const byteRate = sampleRate * numChannels * bitsPerSample / 8;
-    const blockAlign = numChannels * bitsPerSample / 8;
-    const header = new ArrayBuffer(44);
-    const view = new DataView(header);
-    
-    // RIFF header
-    view.setUint32(0, 0x52494646, false); // 'RIFF'
-    view.setUint32(4, 36 + dataLength, true); // file size
-    view.setUint32(8, 0x57415645, false); // 'WAVE'
-    
-    // fmt chunk
-    view.setUint32(12, 0x666d7420, false); // 'fmt '
-    view.setUint32(16, 16, true); // chunk size
-    view.setUint16(20, 1, true); // audio format (PCM)
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, byteRate, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitsPerSample, true);
-    
-    // data chunk
-    view.setUint32(36, 0x64617461, false); // 'data'
-    view.setUint32(40, dataLength, true);
-    
-    return new Uint8Array(header);
-  };
+  }, [audioData, mimeType, createWavHeader]);
 
   // Clean up object URL when component unmounts
   useEffect(() => {

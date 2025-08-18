@@ -28,15 +28,15 @@ export const registeredWorklets: Map<
   Record<string, WorkletGraph>
 > = new Map();
 
-export const createWorketFromSrc = (
+export const createWorkletFromSrc = (
   workletName: string,
-  workletSrc: string,
+  workletSrc: string
 ) => {
   const script = new Blob(
     [`registerProcessor("${workletName}", ${workletSrc})`],
     {
-      type: "application/javascript",
-    },
+      type: 'application/javascript',
+    }
   );
 
   return URL.createObjectURL(script);

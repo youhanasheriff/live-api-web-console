@@ -25,6 +25,8 @@ import Avatar from './components/avatar/Avatar';
 import cn from 'classnames';
 import { LiveClientOptions } from './types';
 
+
+
 const API_KEY = process.env.REACT_APP_GEMINI_API_KEY as string;
 if (typeof API_KEY !== 'string') {
   throw new Error('set REACT_APP_GEMINI_API_KEY in .env');

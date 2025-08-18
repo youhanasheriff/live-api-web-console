@@ -12,14 +12,41 @@ import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 import VoiceSelector from './VoiceSelector';
 import ResponseModalitySelector from './ResponseModalitySelector';
 import { FunctionDeclaration, LiveConnectConfig, Tool } from '@google/genai';
+import { REQUIREMENTS_ANALYST_PROMPT } from '../../system-prompts/requirements-analyst';
 
 type FunctionDeclarationsTool = Tool & {
   functionDeclarations: FunctionDeclaration[];
 };
 
+const SYSTEM_PROMPT_OPTIONS = [
+  { label: 'Custom', value: '' },
+  { label: 'Requirements Analyst', value: REQUIREMENTS_ANALYST_PROMPT },
+];
+
 export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
   const { config, setConfig, connected } = useLiveAPIContext();
+
+  // Determine the initial prompt type based on current system instruction
+  const getPromptType = useCallback(() => {
+    const currentInstruction = config.systemInstruction;
+    if (typeof currentInstruction === 'string') {
+      const matchingOption = SYSTEM_PROMPT_OPTIONS.find(
+        option => option.value === currentInstruction
+      );
+      return matchingOption ? matchingOption.label : 'Custom';
+    }
+    return 'Custom';
+  }, [config.systemInstruction]);
+
+  const [selectedPromptType, setSelectedPromptType] = useState(() =>
+    getPromptType()
+  );
+
+  // Update selectedPromptType when config changes
+  useEffect(() => {
+    setSelectedPromptType(getPromptType());
+  }, [getPromptType]);
   const functionDeclarations: FunctionDeclaration[] = useMemo(() => {
     if (!Array.isArray(config.tools)) {
       return [];
@@ -62,6 +89,24 @@ export default function SettingsDialog() {
         systemInstruction: event.target.value,
       };
       setConfig(newConfig);
+      setSelectedPromptType('Custom');
+    },
+    [config, setConfig]
+  );
+
+  const handlePromptTypeChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const selectedOption = SYSTEM_PROMPT_OPTIONS.find(
+        option => option.label === event.target.value
+      );
+      if (selectedOption) {
+        setSelectedPromptType(selectedOption.label);
+        const newConfig: LiveConnectConfig = {
+          ...config,
+          systemInstruction: selectedOption.value,
+        };
+        setConfig(newConfig);
+      }
     },
     [config, setConfig]
   );
@@ -153,11 +198,29 @@ export default function SettingsDialog() {
                 </div>
 
                 <h3>System Instructions</h3>
-                <textarea
-                  className="system"
-                  onChange={updateConfig}
-                  value={systemInstruction}
-                />
+                <div className="system-instructions-section">
+                  <div className="prompt-type-selector">
+                    <label htmlFor="prompt-type">Prompt Type:</label>
+                    <select
+                      id="prompt-type"
+                      value={selectedPromptType}
+                      onChange={handlePromptTypeChange}
+                      disabled={connected}
+                    >
+                      {SYSTEM_PROMPT_OPTIONS.map(option => (
+                        <option key={option.label} value={option.label}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <textarea
+                    className="system"
+                    onChange={updateConfig}
+                    value={systemInstruction}
+                    placeholder="Enter custom system instructions or select a predefined prompt type above..."
+                  />
+                </div>
                 <h4>Function declarations</h4>
                 <div className="function-declarations">
                   <div className="fd-rows">

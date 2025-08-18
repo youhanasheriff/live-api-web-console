@@ -15,9 +15,9 @@
  */
 
 import {
-  createWorketFromSrc,
+  createWorkletFromSrc,
   registeredWorklets,
-} from "./audioworklet-registry";
+} from './audioworklet-registry';
 
 export class AudioStreamer {
   private sampleRate: number = 24000;
@@ -66,14 +66,24 @@ export class AudioStreamer {
     // create new record to fill in as becomes available
     workletsRecord[workletName] = { handlers: [handler] };
 
-    const src = createWorketFromSrc(workletName, workletSrc);
-    await this.context.audioWorklet.addModule(src);
-    const worklet = new AudioWorkletNode(this.context, workletName);
+    const src = createWorkletFromSrc(workletName, workletSrc);
+    try {
+      await this.context.audioWorklet.addModule(src);
+      const worklet = new AudioWorkletNode(this.context, workletName);
 
-    //add the node into the map
-    workletsRecord[workletName].node = worklet;
+      //add the node into the map
+      workletsRecord[workletName].node = worklet;
 
-    return this;
+      return this;
+    } catch (error) {
+      console.error(
+        `Failed to create AudioWorkletNode for ${workletName}:`,
+        error
+      );
+      // Clean up the registry entry if worklet creation failed
+      delete workletsRecord[workletName];
+      throw error;
+    }
   }
 
   /**
@@ -172,7 +182,7 @@ export class AudioStreamer {
           if (node) {
             source.connect(node);
             node.port.onmessage = function (ev: MessageEvent) {
-              handlers.forEach((handler) => {
+              handlers.forEach(handler => {
                 handler.call(node.port, ev);
               });
             };
@@ -236,7 +246,7 @@ export class AudioStreamer {
   }
 
   async resume() {
-    if (this.context.state === "suspended") {
+    if (this.context.state === 'suspended') {
       await this.context.resume();
     }
     this.isStreamComplete = false;

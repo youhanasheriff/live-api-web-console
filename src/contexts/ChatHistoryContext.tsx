@@ -35,6 +35,8 @@ interface ChatHistoryContextType {
   // Audio recording
   recordAudioChunk: (audioData: string) => void;
   recordVideoFrame: (videoData: string, timestamp: number) => void;
+  startUserUtterance: () => void;
+  endUserUtterance: () => Promise<void>;
 
   // Session history
   allSessions: ChatSession[];
@@ -226,6 +228,14 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({
     setStorageStats(chatHistoryManager.getStorageStats());
   };
 
+  const startUserUtterance = () => {
+    chatHistoryManager.startUserUtterance();
+  };
+
+  const endUserUtterance = async () => {
+    await chatHistoryManager.endUserUtterance();
+  };
+
   const contextValue: ChatHistoryContextType = {
     currentSession,
     startSession,
@@ -234,6 +244,8 @@ export const ChatHistoryProvider: React.FC<ChatHistoryProviderProps> = ({
     addAssistantMessage,
     recordAudioChunk,
     recordVideoFrame,
+    startUserUtterance,
+    endUserUtterance,
     allSessions,
     getSession,
     deleteSession,

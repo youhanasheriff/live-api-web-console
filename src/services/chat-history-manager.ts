@@ -20,8 +20,11 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
   private transcriptionService: TranscriptionService;
   private currentSession: ChatSession | null = null;
   private audioChunks: string[] = [];
+  private currentUserAudioChunks: string[] = [];
   private isRecording = false;
+  private isUserSpeaking = false;
   private recordingStartTime: number = 0;
+  private userUtteranceStartTime: number = 0;
 
   constructor() {
     super();
@@ -151,7 +154,78 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
   recordAudioChunk(audioData: string): void {
     if (this.isRecording && this.currentSession) {
       this.audioChunks.push(audioData);
+      
+      // Also record for current user utterance
+      if (this.isUserSpeaking) {
+        this.currentUserAudioChunks.push(audioData);
+      }
     }
+  }
+
+  /**
+   * Start recording a new user utterance
+   */
+  startUserUtterance(): void {
+    if (this.currentSession) {
+      this.isUserSpeaking = true;
+      this.currentUserAudioChunks = [];
+      this.userUtteranceStartTime = Date.now();
+      console.log('Started user utterance recording');
+    }
+  }
+
+  /**
+   * End current user utterance and transcribe it
+   */
+  async endUserUtterance(): Promise<void> {
+    if (!this.currentSession || !this.isUserSpeaking) {
+      return;
+    }
+
+    this.isUserSpeaking = false;
+    
+    if (this.currentUserAudioChunks.length > 0) {
+      console.log('Ending user utterance, audio chunks:', this.currentUserAudioChunks.length);
+      
+      // Combine audio chunks for this utterance
+      const utteranceAudioData = this.combineUserAudioChunks();
+      const duration = Math.round((Date.now() - this.userUtteranceStartTime) / 1000);
+      
+      // Create user message with audio content
+      const userMessage = this.addUserMessage({
+        audio: {
+          data: utteranceAudioData,
+          mimeType: 'audio/pcm;rate=16000',
+          duration,
+        },
+      });
+
+      // Auto-transcribe the utterance if enabled
+      const settings = chatHistoryStorage.getSettings();
+      if (settings.autoTranscribe && userMessage) {
+        try {
+          const transcriptionRequest: TranscriptionRequest = {
+            sessionId: this.currentSession.id,
+            audioData: utteranceAudioData,
+            mimeType: 'audio/pcm;rate=16000',
+            language: 'en',
+          };
+
+          const response = await this.callTranscriptionService(transcriptionRequest);
+          
+          if (!response.error && response.text.trim()) {
+            // Update the user message with transcribed text
+            userMessage.content.text = response.text.trim();
+            chatHistoryStorage.addMessage(this.currentSession.id, userMessage);
+            console.log('User utterance transcribed:', response.text.trim());
+          }
+        } catch (error) {
+          console.error('Failed to transcribe user utterance:', error);
+        }
+      }
+    }
+    
+    this.currentUserAudioChunks = [];
   }
 
   /**
@@ -284,6 +358,49 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
   /**
    * Combine audio chunks into a single base64 string
    */
+  private combineUserAudioChunks(): string {
+    if (this.currentUserAudioChunks.length === 0) {
+      return '';
+    }
+
+    try {
+      // Convert each base64 chunk to binary data
+      const binaryChunks = this.currentUserAudioChunks.map(chunk => {
+        // Remove any data URL prefixes if present
+        const cleanChunk = chunk.replace(/^data:audio\/[^;]+;base64,/, '');
+        const binaryString = atob(cleanChunk);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+      });
+
+      // Calculate total length
+      const totalLength = binaryChunks.reduce(
+        (sum, chunk) => sum + chunk.length,
+        0
+      );
+
+      // Combine all chunks
+      const combinedData = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of binaryChunks) {
+        combinedData.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      // Convert back to base64
+      const binaryString = Array.from(combinedData)
+        .map(byte => String.fromCharCode(byte))
+        .join('');
+      return btoa(binaryString);
+    } catch (error) {
+      console.error('Error combining user audio chunks:', error);
+      return '';
+    }
+  }
+
   private combineAudioChunks(): string {
     if (this.audioChunks.length === 0) {
       return '';
@@ -383,6 +500,18 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
         this.currentSession.status = 'interrupted';
         chatHistoryStorage.endSession(this.currentSession.id);
       }
+    });
+
+    // Listen for turn completion events to track user utterances
+    client.on('turncomplete', () => {
+      console.log('Turn complete - ending user utterance');
+      this.endUserUtterance();
+    });
+
+    // Listen for interruption events
+    client.on('interrupted', () => {
+      console.log('Turn interrupted - ending user utterance');
+      this.endUserUtterance();
     });
   }
 
