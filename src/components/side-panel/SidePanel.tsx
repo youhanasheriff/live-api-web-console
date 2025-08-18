@@ -22,6 +22,7 @@ import Select from 'react-select';
 import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 import { useLoggerStore } from '../../lib/store-logger';
 import Logger, { LoggerFilterType } from '../logger/Logger';
+import ChatHistory from '../chat-history/ChatHistory';
 import './side-panel.scss';
 
 const filterOptions = [
@@ -33,6 +34,7 @@ const filterOptions = [
 export default function SidePanel() {
   const { connected, client } = useLiveAPIContext();
   const [open, setOpen] = useState(true);
+  const [chatHistoryOpen, setChatHistoryOpen] = useState(false);
   const loggerRef = useRef<HTMLDivElement>(null);
   const loggerLastHeightRef = useRef<number>(-1);
   const { log, logs } = useLoggerStore();
@@ -77,15 +79,24 @@ export default function SidePanel() {
     <div className={`side-panel ${open ? 'open' : ''}`}>
       <header className="top">
         <h2>Audio Call</h2>
-        {open ? (
-          <button className="opener" onClick={() => setOpen(false)}>
-            <RiSidebarFoldLine color="#b4b8bb" />
+        <div className="header-actions">
+          <button
+            className="chat-history-button"
+            onClick={() => setChatHistoryOpen(true)}
+            title="View Chat History"
+          >
+            <span className="material-symbols-outlined">history</span>
           </button>
-        ) : (
-          <button className="opener" onClick={() => setOpen(true)}>
-            <RiSidebarUnfoldLine color="#b4b8bb" />
-          </button>
-        )}
+          {open ? (
+            <button className="opener" onClick={() => setOpen(false)}>
+              <RiSidebarFoldLine color="#b4b8bb" />
+            </button>
+          ) : (
+            <button className="opener" onClick={() => setOpen(true)}>
+              <RiSidebarUnfoldLine color="#b4b8bb" />
+            </button>
+          )}
+        </div>
       </header>
       <section className="indicators">
         <Select
@@ -157,6 +168,10 @@ export default function SidePanel() {
           </button>
         </div>
       </div>
+      <ChatHistory
+        isOpen={chatHistoryOpen}
+        onClose={() => setChatHistoryOpen(false)}
+      />
     </div>
   );
 }

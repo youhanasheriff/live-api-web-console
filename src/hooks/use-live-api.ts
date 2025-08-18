@@ -32,9 +32,19 @@ export type UseLiveAPIResults = {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   volume: number;
+  onMessage?: (message: any) => void;
+  onContent?: (content: any) => void;
+  onToolCall?: (toolCall: any) => void;
 };
 
-export function useLiveAPI(options: LiveClientOptions): UseLiveAPIResults {
+export function useLiveAPI(
+  options: LiveClientOptions,
+  callbacks?: {
+    onMessage?: (message: any) => void;
+    onContent?: (content: any) => void;
+    onToolCall?: (toolCall: any) => void;
+  }
+): UseLiveAPIResults {
   const client = useMemo(() => new GenAILiveClient(options), [options]);
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
 
@@ -77,12 +87,22 @@ export function useLiveAPI(options: LiveClientOptions): UseLiveAPIResults {
     const onAudio = (data: ArrayBuffer) =>
       audioStreamerRef.current?.addPCM16(new Uint8Array(data));
 
+    const onContent = (content: any) => {
+      callbacks?.onContent?.(content);
+    };
+
+    const onToolCall = (toolCall: any) => {
+      callbacks?.onToolCall?.(toolCall);
+    };
+
     client
       .on('error', onError)
       .on('open', onOpen)
       .on('close', onClose)
       .on('interrupted', stopAudioStreamer)
-      .on('audio', onAudio);
+      .on('audio', onAudio)
+      .on('content', onContent)
+      .on('toolcall', onToolCall);
 
     return () => {
       client
@@ -91,6 +111,8 @@ export function useLiveAPI(options: LiveClientOptions): UseLiveAPIResults {
         .off('close', onClose)
         .off('interrupted', stopAudioStreamer)
         .off('audio', onAudio)
+        .off('content', onContent)
+        .off('toolcall', onToolCall)
         .disconnect();
     };
   }, [client]);
@@ -118,5 +140,8 @@ export function useLiveAPI(options: LiveClientOptions): UseLiveAPIResults {
     connect,
     disconnect,
     volume,
+    onMessage: callbacks?.onMessage,
+    onContent: callbacks?.onContent,
+    onToolCall: callbacks?.onToolCall,
   };
 }

@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-import cn from "classnames";
+import cn from 'classnames';
 
-import { memo, ReactNode, RefObject, useEffect, useRef, useState } from "react";
-import { useLiveAPIContext } from "../../contexts/LiveAPIContext";
-import { UseMediaStreamResult } from "../../hooks/use-media-stream-mux";
-import { useScreenCapture } from "../../hooks/use-screen-capture";
-import { useWebcam } from "../../hooks/use-webcam";
-import { AudioRecorder } from "../../lib/audio-recorder";
-import AudioPulse from "../audio-pulse/AudioPulse";
-import "./control-tray.scss";
-import SettingsDialog from "../settings-dialog/SettingsDialog";
+import { memo, ReactNode, RefObject, useEffect, useRef, useState } from 'react';
+import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
+import { useChatHistory } from '../../contexts/ChatHistoryContext';
+import { UseMediaStreamResult } from '../../hooks/use-media-stream-mux';
+import { useScreenCapture } from '../../hooks/use-screen-capture';
+import { useWebcam } from '../../hooks/use-webcam';
+import { AudioRecorder } from '../../lib/audio-recorder';
+import AudioPulse from '../audio-pulse/AudioPulse';
+import './control-tray.scss';
+import SettingsDialog from '../settings-dialog/SettingsDialog';
 
 export type ControlTrayProps = {
   videoRef: RefObject<HTMLVideoElement>;
@@ -77,6 +78,7 @@ function ControlTray({
 
   const { client, connected, connect, disconnect, volume } =
     useLiveAPIContext();
+  const { recordAudioChunk } = useChatHistory();
 
   useEffect(() => {
     if (!connected && connectButtonRef.current) {
@@ -85,7 +87,7 @@ function ControlTray({
   }, [connected]);
   useEffect(() => {
     document.documentElement.style.setProperty(
-      "--volume",
+      '--volume',
       `${Math.max(5, Math.min(inVolume * 200, 8))}px`
     );
   }, [inVolume]);
@@ -94,18 +96,20 @@ function ControlTray({
     const onData = (base64: string) => {
       client.sendRealtimeInput([
         {
-          mimeType: "audio/pcm;rate=16000",
+          mimeType: 'audio/pcm;rate=16000',
           data: base64,
         },
       ]);
+      // Record audio chunk for chat history
+      recordAudioChunk(base64);
     };
     if (connected && !muted && audioRecorder) {
-      audioRecorder.on("data", onData).on("volume", setInVolume).start();
+      audioRecorder.on('data', onData).on('volume', setInVolume).start();
     } else {
       audioRecorder.stop();
     }
     return () => {
-      audioRecorder.off("data", onData).off("volume", setInVolume);
+      audioRecorder.off('data', onData).off('volume', setInVolume);
     };
   }, [connected, client, muted, audioRecorder]);
 
@@ -124,14 +128,14 @@ function ControlTray({
         return;
       }
 
-      const ctx = canvas.getContext("2d")!;
+      const ctx = canvas.getContext('2d')!;
       canvas.width = video.videoWidth * 0.25;
       canvas.height = video.videoHeight * 0.25;
       if (canvas.width + canvas.height > 0) {
         ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const base64 = canvas.toDataURL("image/jpeg", 1.0);
-        const data = base64.slice(base64.indexOf(",") + 1, Infinity);
-        client.sendRealtimeInput([{ mimeType: "image/jpeg", data }]);
+        const base64 = canvas.toDataURL('image/jpeg', 1.0);
+        const data = base64.slice(base64.indexOf(',') + 1, Infinity);
+        client.sendRealtimeInput([{ mimeType: 'image/jpeg', data }]);
       }
       if (connected) {
         timeoutId = window.setTimeout(sendVideoFrame, 1000 / 0.5);
@@ -156,15 +160,15 @@ function ControlTray({
       onVideoStreamChange(null);
     }
 
-    videoStreams.filter((msr) => msr !== next).forEach((msr) => msr.stop());
+    videoStreams.filter(msr => msr !== next).forEach(msr => msr.stop());
   };
 
   return (
     <section className="control-tray">
-      <canvas style={{ display: "none" }} ref={renderCanvasRef} />
-      <nav className={cn("actions-nav", { disabled: !connected })}>
+      <canvas style={{ display: 'none' }} ref={renderCanvasRef} />
+      <nav className={cn('actions-nav', { disabled: !connected })}>
         <button
-          className={cn("action-button mic-button")}
+          className={cn('action-button mic-button')}
           onClick={() => setMuted(!muted)}
         >
           {!muted ? (
@@ -199,21 +203,21 @@ function ControlTray({
         {children}
       </nav>
 
-      <div className={cn("connection-container", { connected })}>
+      <div className={cn('connection-container', { connected })}>
         <div className="connection-button-container">
           <button
             ref={connectButtonRef}
-            className={cn("action-button connect-toggle", { connected })}
+            className={cn('action-button connect-toggle', { connected })}
             onClick={connected ? disconnect : connect}
           >
             <span className="material-symbols-outlined filled">
-              {connected ? "pause" : "play_arrow"}
+              {connected ? 'pause' : 'play_arrow'}
             </span>
           </button>
         </div>
         <span className="text-indicator">Streaming</span>
       </div>
-      {enableEditingSettings ? <SettingsDialog /> : ""}
+      {enableEditingSettings ? <SettingsDialog /> : ''}
     </section>
   );
 }

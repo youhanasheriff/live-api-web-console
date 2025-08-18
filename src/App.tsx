@@ -17,6 +17,7 @@
 import { useRef, useState } from 'react';
 import './App.scss';
 import { LiveAPIProvider, useLiveAPIContext } from './contexts/LiveAPIContext';
+import { ChatHistoryProvider } from './contexts/ChatHistoryContext';
 import SidePanel from './components/side-panel/SidePanel';
 import { Altair } from './components/altair/Altair';
 import ControlTray from './components/control-tray/ControlTray';
@@ -52,7 +53,7 @@ function AppContent() {
         <div className="main-app-area">
           {/* APP goes here */}
           <Altair />
-          
+
           {/* Video stream */}
           <video
             className={cn('stream', {
@@ -62,7 +63,7 @@ function AppContent() {
             autoPlay
             playsInline
           />
-          
+
           {/* AI Avatar - shows when connected but no video */}
           {showAvatar && (
             <div className="avatar-container">
@@ -87,9 +88,11 @@ function AppContent() {
 function App() {
   return (
     <div className="App">
-      <LiveAPIProvider options={apiOptions}>
-        <AppContent />
-      </LiveAPIProvider>
+      <ChatHistoryProvider>
+        <LiveAPIProvider options={apiOptions}>
+          <AppContent />
+        </LiveAPIProvider>
+      </ChatHistoryProvider>
     </div>
   );
 }
