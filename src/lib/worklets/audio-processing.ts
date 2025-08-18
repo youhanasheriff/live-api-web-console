@@ -15,7 +15,7 @@
  */
 
 const AudioRecordingWorklet = `
-class AudioProcessingWorklet extends AudioWorkletProcessor {
+class AudioRecorderWorklet extends AudioWorkletProcessor {
 
   // send and clear buffer every 2048 samples, 
   // which at 16khz is about 8 times a second

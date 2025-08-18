@@ -15,7 +15,7 @@
  */
 
 const VolMeterWorklet = `
-  class VolMeter extends AudioWorkletProcessor {
+  class VuMeter extends AudioWorkletProcessor {
     volume
     updateIntervalInMS
     nextUpdateFrame
