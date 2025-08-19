@@ -15,7 +15,7 @@
  */
 
 import React, { useState } from 'react';
-import { RiVolumeUpLine } from 'react-icons/ri';
+import { Volume2 } from 'lucide-react';
 import AudioManagerModal from './AudioManagerModal';
 
 interface AudioManagerButtonProps {
@@ -40,7 +40,7 @@ const AudioManagerButton: React.FC<AudioManagerButtonProps> = ({ className }) =>
         onClick={handleOpenModal}
         title="Audio Recordings"
       >
-        <RiVolumeUpLine />
+        <Volume2 />
       </button>
       
       {isModalOpen && (

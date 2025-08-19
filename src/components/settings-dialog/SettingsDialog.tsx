@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { RiSettings3Line, RiCloseLine } from "react-icons/ri";
+import { Settings, X } from "lucide-react";
 import "./settings-dialog.scss";
 import { useLiveAPIContext } from "../../contexts/LiveAPIContext";
 import VoiceSelector from "./VoiceSelector";
@@ -16,7 +16,7 @@ export default function SettingsDialog() {
         onClick={() => setOpen(!open)}
         aria-label="Open settings"
       >
-        <RiSettings3Line size={20} />
+        <Settings size={20} />
       </button>
       {open && createPortal(
         <>
@@ -41,7 +41,7 @@ export default function SettingsDialog() {
                   aria-label="Close voice settings dialog"
                   type="button"
                 >
-                  <RiCloseLine size={20} aria-hidden="true" />
+                  <X size={20} aria-hidden="true" />
                 </button>
               </div>
               <div className={`modal-content ${connected ? "disabled" : ""}`}>

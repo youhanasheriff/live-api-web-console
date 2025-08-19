@@ -66,6 +66,32 @@
   --md-sys-color-on-warning: #ffffff;
   --md-sys-color-warning-container: #fff3e0;
   --md-sys-color-on-warning-container: #e65100;
+  
+  // RGB color values for gradients and opacity effects
+  --md-sys-color-primary-rgb: 25, 118, 210;
+  --md-sys-color-secondary-rgb: 95, 99, 104;
+  --md-sys-color-tertiary-rgb: 124, 77, 255;
+  --md-sys-color-error-rgb: 211, 47, 47;
+  --md-sys-color-on-surface-variant-rgb: 73, 69, 79;
+  --md-sys-color-on-primary-rgb: 255, 255, 255;
+  --md-sys-color-on-secondary-container-rgb: 31, 31, 31;
+  
+  // State layer opacity values
+  --md-sys-state-scrim-opacity: 0.32;
+  --md-sys-state-hover-state-layer-opacity: 0.08;
+  --md-sys-state-focus-state-layer-opacity: 0.12;
+  --md-sys-state-pressed-state-layer-opacity: 0.12;
+  --md-sys-state-disabled-content-opacity: 0.38;
+  
+  // Z-index system (updated to match global system)
+  --md-sys-z-index-modal: 1200;
+  --md-sys-z-index-tooltip: 1100;
+  --md-sys-z-index-dropdown: 1000;
+  
+  // Component-specific tokens
+  --md-comp-icon-button-size: 48px;
+  --md-comp-icon-button-icon-size: 20px;
+  --md-comp-icon-button-shape: var(--md-sys-shape-corner-full);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -113,6 +139,15 @@
     --md-sys-color-on-warning: #e65100;
     --md-sys-color-warning-container: #f57c00;
     --md-sys-color-on-warning-container: #fff8e1;
+    
+    // RGB color values for gradients and opacity effects (dark theme)
+    --md-sys-color-primary-rgb: 144, 202, 249;
+    --md-sys-color-secondary-rgb: 189, 193, 198;
+    --md-sys-color-tertiary-rgb: 179, 157, 219;
+    --md-sys-color-error-rgb: 242, 139, 130;
+    --md-sys-color-on-surface-variant-rgb: 202, 196, 208;
+    --md-sys-color-on-primary-rgb: 27, 71, 161;
+    --md-sys-color-on-secondary-container-rgb: 232, 234, 237;
   }
 }
 
@@ -1051,3 +1086,92 @@
 .md-bg-error { background: var(--md-sys-color-error); }
 .md-bg-success { background: var(--md-sys-color-success); }
 .md-bg-warning { background: var(--md-sys-color-warning); }
+
+// ============================================================================
+// ANIMATION KEYFRAMES
+// ============================================================================
+
+// Material Design 3 Animation Keyframes
+@keyframes md-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes md-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes md-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes md-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes md-slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes md-slide-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes md-slide-out-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes md-slide-out-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}

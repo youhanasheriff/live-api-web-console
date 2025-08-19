@@ -17,7 +17,7 @@
 import "./react-select.scss";
 import cn from "classnames";
 import { useEffect, useRef, useState } from "react";
-import { RiSidebarFoldLine, RiSidebarUnfoldLine } from "react-icons/ri";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Select from "react-select";
 import { useLiveAPIContext } from "../../contexts/LiveAPIContext";
 import { useLoggerStore } from "../../lib/store-logger";
@@ -85,7 +85,7 @@ export default function SidePanel() {
               aria-controls="side-panel-content"
               type="button"
             >
-              <RiSidebarFoldLine aria-hidden="true" />
+              <PanelLeftClose aria-hidden="true" />
             </button>
           ) : (
             <button 
@@ -96,7 +96,7 @@ export default function SidePanel() {
               aria-controls="side-panel-content"
               type="button"
             >
-              <RiSidebarUnfoldLine aria-hidden="true" />
+              <PanelLeftOpen aria-hidden="true" />
             </button>
           )}
         </div>

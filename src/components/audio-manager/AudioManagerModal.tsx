@@ -17,16 +17,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  RiCloseLine,
-  RiSearchLine,
-  RiDeleteBinLine,
-  RiPlayLine,
-  RiPauseLine,
-  RiDownloadLine,
-  RiTimeLine,
-  RiVolumeUpLine,
-  RiDeleteBin2Line,
-} from 'react-icons/ri';
+  Play,
+  Pause,
+  Download,
+  Trash2,
+  X,
+  Search,
+  Clock,
+  HardDrive,
+  Volume2,
+} from 'lucide-react';
 import { sessionAudioStorage, StoredSessionAudio, AudioStorageStats } from '../../lib/session-audio-storage';
 import './audio-manager-modal.scss';
 
@@ -104,7 +104,7 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
       <div className="audio-info">
         <div className="audio-header">
           <div className="audio-title">
-            <RiVolumeUpLine className="audio-icon" />
+            <Volume2 className="audio-icon" />
             <span>Recording {audio.sessionId.slice(-8)}</span>
           </div>
           <div className="audio-date">
@@ -115,13 +115,13 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
         <div className="audio-details">
           <div className="audio-meta">
             <span className="duration">
-              <RiTimeLine /> {formatDuration(audio.duration / 1000)}
+              <Clock /> {formatDuration(audio.duration / 1000)}
             </span>
             <span className="file-size">
-              {formatFileSize(audio.size)}
+              <HardDrive /> {formatFileSize(audio.size)}
             </span>
             <span className="sample-rate">
-              {(audio.sampleRate / 1000).toFixed(1)}kHz
+              <Volume2 /> {(audio.sampleRate / 1000).toFixed(1)}kHz
             </span>
           </div>
         </div>
@@ -155,10 +155,11 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
             e.stopPropagation();
             isPlaying ? onPause() : onPlay();
           }}
-          aria-label={`${isPlaying ? 'Pause' : 'Play'} recording ${audio.sessionId.slice(-8)}`}
+          aria-label={`${isPlaying ? 'Pause' : 'Play'} recording from ${formatDate(audio.startTime)} (${formatDuration(audio.duration / 1000)})`}
+          title={`${isPlaying ? 'Pause' : 'Play'} recording`}
           type="button"
         >
-          {isPlaying ? <RiPauseLine aria-hidden="true" /> : <RiPlayLine aria-hidden="true" />}
+          {isPlaying ? <Pause aria-hidden="true" strokeWidth={2.5} /> : <Play aria-hidden="true" strokeWidth={2.5} />}
         </button>
         
         <button
@@ -167,10 +168,11 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
             e.stopPropagation();
             onDownload();
           }}
-          aria-label={`Download recording ${audio.sessionId.slice(-8)}`}
+          aria-label={`Download recording from ${formatDate(audio.startTime)} (${formatFileSize(audio.size)})`}
+          title="Download recording as audio file"
           type="button"
         >
-          <RiDownloadLine aria-hidden="true" />
+          <Download aria-hidden="true" strokeWidth={2.5} />
         </button>
         
         <button
@@ -179,10 +181,11 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
             e.stopPropagation();
             onDelete();
           }}
-          aria-label={`Delete recording ${audio.sessionId.slice(-8)}`}
+          aria-label={`Delete recording from ${formatDate(audio.startTime)} permanently`}
+          title="Delete recording permanently"
           type="button"
         >
-          <RiDeleteBinLine aria-hidden="true" />
+          <Trash2 aria-hidden="true" strokeWidth={2.5} />
         </button>
       </div>
     </div>
@@ -499,7 +502,7 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
             aria-label="Close audio recordings dialog"
             type="button"
           >
-            <RiCloseLine aria-hidden="true" />
+            <X aria-hidden="true" />
           </button>
         </div>
 
@@ -508,7 +511,7 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
           
           <div className="search-section">
             <div className="search-input-container">
-              <RiSearchLine className="search-icon" aria-hidden="true" />
+              <Search className="search-icon" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Search recordings..."
@@ -530,7 +533,7 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
                 aria-label="Delete all audio recordings"
                 type="button"
               >
-                <RiDeleteBin2Line aria-hidden="true" /> Clear All
+                <Trash2 aria-hidden="true" strokeWidth={2.5} /> Clear All
               </button>
             )}
           </div>
