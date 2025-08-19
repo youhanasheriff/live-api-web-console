@@ -16,9 +16,15 @@
 
 import { createContext, FC, ReactNode, useContext } from "react";
 import { useLiveAPI, UseLiveAPIResults } from "../hooks/use-live-api";
+import { useChatSession } from "../hooks/use-chat-session";
+import type { UseChatSessionResults } from "../hooks/use-chat-session";
 import { LiveClientOptions } from "../types";
 
-const LiveAPIContext = createContext<UseLiveAPIResults | undefined>(undefined);
+interface LiveAPIContextValue extends UseLiveAPIResults {
+  chatSession: UseChatSessionResults;
+}
+
+const LiveAPIContext = createContext<LiveAPIContextValue | undefined>(undefined);
 
 export type LiveAPIProviderProps = {
   children: ReactNode;
@@ -30,9 +36,15 @@ export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({
   children,
 }) => {
   const liveAPI = useLiveAPI(options);
+  const chatSession = useChatSession(liveAPI.connected, liveAPI.model);
+
+  const contextValue: LiveAPIContextValue = {
+    ...liveAPI,
+    chatSession
+  };
 
   return (
-    <LiveAPIContext.Provider value={liveAPI}>
+    <LiveAPIContext.Provider value={contextValue}>
       {children}
     </LiveAPIContext.Provider>
   );

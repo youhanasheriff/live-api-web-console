@@ -38,6 +38,21 @@
     padding: 12px 20px 12px 25px;
     border-bottom: 1px solid var(--Neutral-20);
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .history-button {
+        color: var(--Neutral-60);
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: var(--Neutral-90);
+        }
+      }
+    }
+
     h2 {
       position: relative;
       color: var(--Neutral-90, #e1e2e3);
