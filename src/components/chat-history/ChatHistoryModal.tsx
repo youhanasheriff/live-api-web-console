@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
   RiCloseLine,
@@ -90,41 +90,52 @@ const SessionListItem: React.FC<SessionListItemProps> = ({
     <div
       className={`session-item ${isSelected ? 'selected' : ''}`}
       onClick={onClick}
+      role="listitem"
+      aria-selected={isSelected}
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
-      <div className="session-main">
+      <div className="session-header">
         <div className="session-title">{session.title}</div>
-        <div className="session-meta">
-          <span className="session-date">{formatDate(session.startTime)}</span>
-          <span className="session-duration">
-            <RiTimeLine size={12} />
-            {formatDuration(session.duration)}
-          </span>
-          <span className="session-messages">
-            {session.metadata.messageCount} messages
-          </span>
+        <div className="session-actions">
+          <button
+            className="action-button play-button"
+            onClick={e => {
+              e.stopPropagation();
+              onPlay();
+            }}
+            title="Replay session"
+            aria-label="Replay session"
+          >
+            <RiPlayLine size={16} />
+          </button>
+          <button
+            className="action-button delete-button"
+            onClick={e => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            title="Delete session"
+            aria-label="Delete session"
+          >
+            <RiDeleteBinLine size={16} />
+          </button>
         </div>
       </div>
-      <div className="session-actions">
-        <button
-          className="action-button play-button"
-          onClick={e => {
-            e.stopPropagation();
-            onPlay();
-          }}
-          title="Replay session"
-        >
-          <RiPlayLine size={16} />
-        </button>
-        <button
-          className="action-button delete-button"
-          onClick={e => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          title="Delete session"
-        >
-          <RiDeleteBinLine size={16} />
-        </button>
+
+      <div className="session-meta">
+        <span className="session-date">{formatDate(session.startTime)}</span>
+        <span className="session-duration">
+          <RiTimeLine size={12} /> {formatDuration(session.duration)}
+        </span>
+        <span className="session-count">
+          {session.metadata.messageCount} messages
+        </span>
       </div>
     </div>
   );
@@ -151,7 +162,14 @@ const StorageStatsDisplay: React.FC<{ stats: StorageStats }> = ({ stats }) => {
           Storage: {formatBytes(stats.totalSize)} ({usagePercentage}%)
         </span>
       </div>
-      <div className="storage-bar">
+      <div
+        className="storage-bar"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.min(100, parseFloat(usagePercentage))}
+        aria-label="Storage usage"
+      >
         <div
           className="storage-used"
           style={{ width: `${Math.min(100, parseFloat(usagePercentage))}%` }}
@@ -296,24 +314,54 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
     }
   }, [loadSessions, loadStats, open]);
 
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Focus the search input when opening
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+  }, [open]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return createPortal(
     <div className="chat-history-backdrop" onClick={onClose}>
-      <div className="chat-history-modal" onClick={e => e.stopPropagation()}>
+      <div
+        className="chat-history-modal"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chat-history-title"
+      >
         {/* Header */}
         <div className="modal-header">
-          <h2>Chat History</h2>
+          <h2 id="chat-history-title">Chat History</h2>
           <div className="header-actions">
             <button
               className="action-button export-button"
               onClick={handleExportSessions}
               title="Export all sessions"
+              aria-label="Export all sessions"
             >
               <RiDownloadLine size={16} />
             </button>
-            <button className="close-button" onClick={onClose}>
-              <RiCloseLine size={20} />
+            <button
+              className="action-button"
+              onClick={onClose}
+              aria-label="Close dialog"
+            >
+              <RiCloseLine size={16} color="#fff" />
             </button>
           </div>
         </div>
@@ -321,13 +369,19 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
         {/* Search and Stats */}
         <div className="modal-controls">
           <div className="search-container">
-            <RiSearchLine className="search-icon" size={16} />
+            <RiSearchLine
+              className="search-icon"
+              size={16}
+              aria-hidden="true"
+            />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search sessions..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="search-input"
+              aria-label="Search sessions"
             />
           </div>
           {stats && <StorageStatsDisplay stats={stats} />}
@@ -336,16 +390,23 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
         {/* Content */}
         <div className="modal-content">
           {error && (
-            <div className="error-message">
+            <div className="error-message" role="alert">
               {error}
-              <button onClick={() => setError(null)}>×</button>
+              <button onClick={() => setError(null)} aria-label="Dismiss error">
+                ×
+              </button>
             </div>
           )}
 
           {loading ? (
-            <div className="loading-state">
+            <div
+              className="loading"
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+            >
               <div className="loading-spinner" />
-              <span>Loading sessions...</span>
+              <span className="loading-text">Loading sessions...</span>
             </div>
           ) : filteredSessions.length === 0 ? (
             <div className="empty-state">
@@ -366,7 +427,11 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
           ) : (
             <div className="sessions-layout">
               {/* Session List */}
-              <div className="sessions-list">
+              <div
+                className="sessions-list"
+                role="list"
+                aria-label="Saved sessions"
+              >
                 {filteredSessions.map(session => (
                   <SessionListItem
                     key={session.id}
@@ -459,6 +524,11 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
                 deleteConfirm === 'all' ? 'confirm' : ''
               }`}
               onClick={handleClearAllSessions}
+              aria-label={
+                deleteConfirm === 'all'
+                  ? 'Confirm clear all sessions'
+                  : 'Clear all sessions'
+              }
             >
               {deleteConfirm === 'all'
                 ? 'Confirm Clear All'
