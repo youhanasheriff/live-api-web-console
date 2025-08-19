@@ -19,12 +19,17 @@ import { LiveConnectConfig } from '@google/genai';
 export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
   private transcriptionService: TranscriptionService;
   private currentSession: ChatSession | null = null;
-  private audioChunks: string[] = [];
-  private currentUserAudioChunks: string[] = [];
+  private continuousAudioStream: string = ''; // Single continuous audio stream for entire session
+  private continuousUserAudioStream: string = ''; // Continuous user audio stream
+  private continuousAIAudioStream: string = ''; // Continuous AI audio stream
+  private currentUserAudioChunks: string[] = []; // Temporary chunks for current utterance transcription
+  private currentAIAudioChunks: string[] = []; // Temporary chunks for current utterance
   private isRecording = false;
   private isUserSpeaking = false;
+  private isAISpeaking = false;
   private recordingStartTime: number = 0;
   private userUtteranceStartTime: number = 0;
+  private aiUtteranceStartTime: number = 0;
 
   constructor() {
     super();
@@ -43,7 +48,9 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
     }
 
     this.currentSession = chatHistoryStorage.createSession(model, config);
-    this.audioChunks = [];
+    this.continuousAudioStream = '';
+    this.continuousUserAudioStream = '';
+    this.continuousAIAudioStream = '';
     this.isRecording = true;
     this.recordingStartTime = Date.now();
 
@@ -62,36 +69,90 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
     }
 
     const sessionId = this.currentSession.id;
+
+    // Calculate session duration in seconds
+    const sessionDuration = Math.round(
+      (Date.now() - this.recordingStartTime) / 1000
+    );
+
+    // Check if session is too short (less than 1 second)
+    if (sessionDuration < 1) {
+      console.log(
+        'Session too short, not saving:',
+        sessionId,
+        'Duration:',
+        sessionDuration,
+        'seconds'
+      );
+      // Delete the session from storage since it's too short
+      chatHistoryStorage.deleteSession(sessionId);
+
+      // Reset state
+      this.currentSession = null;
+      this.continuousAudioStream = '';
+      this.continuousUserAudioStream = '';
+      this.continuousAIAudioStream = '';
+      this.currentUserAudioChunks = [];
+      this.currentAIAudioChunks = [];
+      this.isRecording = false;
+
+      return null;
+    }
+
     const endedSession = chatHistoryStorage.endSession(sessionId);
 
     if (endedSession) {
       this.isRecording = false;
 
-      // Save complete audio recording if we have chunks
-      if (this.audioChunks.length > 0) {
-        const audioData = this.combineAudioChunks();
-        // Calculate duration in seconds
-        const duration = Math.round((Date.now() - this.recordingStartTime) / 1000);
-
+      // Save complete continuous audio recording
+      if (this.continuousAudioStream.length > 0) {
         chatHistoryStorage.updateSessionAudioRecording(sessionId, {
-          data: audioData,
+          data: this.continuousAudioStream,
           mimeType: 'audio/pcm;rate=16000',
-          duration,
+          duration: sessionDuration,
         });
       }
 
-      console.log('Chat session ended:', sessionId);
+      // Save separate user audio recording
+      if (this.continuousUserAudioStream.length > 0) {
+        chatHistoryStorage.updateSessionUserAudioRecording(sessionId, {
+          data: this.continuousUserAudioStream,
+          mimeType: 'audio/pcm;rate=16000',
+          duration: sessionDuration,
+        });
+      }
+
+      // Save separate AI audio recording
+      if (this.continuousAIAudioStream.length > 0) {
+        chatHistoryStorage.updateSessionAIAudioRecording(sessionId, {
+          data: this.continuousAIAudioStream,
+          mimeType: 'audio/pcm;rate=24000',
+          duration: sessionDuration,
+        });
+      }
+
+      console.log(
+        'Chat session ended:',
+        sessionId,
+        'Duration:',
+        sessionDuration,
+        'seconds'
+      );
       this.emit('session:ended', endedSession);
 
       // Auto-transcribe if enabled
       const settings = chatHistoryStorage.getSettings();
-      if (settings.autoTranscribe && this.audioChunks.length > 0) {
+      if (settings.autoTranscribe && this.continuousAudioStream.length > 0) {
         this.requestTranscription(sessionId);
       }
     }
 
     this.currentSession = null;
-    this.audioChunks = [];
+    this.continuousAudioStream = '';
+    this.continuousUserAudioStream = '';
+    this.continuousAIAudioStream = '';
+    this.currentUserAudioChunks = [];
+    this.currentAIAudioChunks = [];
 
     return endedSession;
   }
@@ -153,11 +214,29 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
    */
   recordAudioChunk(audioData: string): void {
     if (this.isRecording && this.currentSession) {
-      this.audioChunks.push(audioData);
-      
+      // Properly combine base64 audio data instead of simple concatenation
+      this.continuousAudioStream = this.combineBase64AudioData(this.continuousAudioStream, audioData);
+
       // Also record for current user utterance
       if (this.isUserSpeaking) {
         this.currentUserAudioChunks.push(audioData);
+        this.continuousUserAudioStream = this.combineBase64AudioData(this.continuousUserAudioStream, audioData);
+      }
+    }
+  }
+
+  /**
+   * Record AI audio chunk for the current session
+   */
+  recordAIAudioChunk(audioData: string): void {
+    if (this.isRecording && this.currentSession) {
+      // Properly combine base64 audio data instead of simple concatenation
+      this.continuousAudioStream = this.combineBase64AudioData(this.continuousAudioStream, audioData);
+
+      // Also record for current AI utterance
+      if (this.isAISpeaking) {
+        this.currentAIAudioChunks.push(audioData);
+        this.continuousAIAudioStream = this.combineBase64AudioData(this.continuousAIAudioStream, audioData);
       }
     }
   }
@@ -183,14 +262,19 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
     }
 
     this.isUserSpeaking = false;
-    
+
     if (this.currentUserAudioChunks.length > 0) {
-      console.log('Ending user utterance, audio chunks:', this.currentUserAudioChunks.length);
-      
+      console.log(
+        'Ending user utterance, audio chunks:',
+        this.currentUserAudioChunks.length
+      );
+
       // Combine audio chunks for this utterance
       const utteranceAudioData = this.combineUserAudioChunks();
-      const duration = Math.round((Date.now() - this.userUtteranceStartTime) / 1000);
-      
+      const duration = Math.round(
+        (Date.now() - this.userUtteranceStartTime) / 1000
+      );
+
       // Create user message with audio content
       const userMessage = this.addUserMessage({
         audio: {
@@ -211,8 +295,10 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
             language: 'en',
           };
 
-          const response = await this.callTranscriptionService(transcriptionRequest);
-          
+          const response = await this.callTranscriptionService(
+            transcriptionRequest
+          );
+
           if (!response.error && response.text.trim()) {
             // Update the user message with transcribed text
             userMessage.content.text = response.text.trim();
@@ -224,8 +310,116 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
         }
       }
     }
-    
+
     this.currentUserAudioChunks = [];
+  }
+
+  /**
+   * Start recording a new AI utterance
+   */
+  startAIUtterance(): void {
+    if (this.currentSession) {
+      this.isAISpeaking = true;
+      this.currentAIAudioChunks = [];
+      this.aiUtteranceStartTime = Date.now();
+      console.log('Started AI utterance recording');
+    }
+  }
+
+  /**
+   * End current AI utterance and store it
+   */
+  async endAIUtterance(): Promise<void> {
+    if (!this.currentSession || !this.isAISpeaking) {
+      return;
+    }
+
+    this.isAISpeaking = false;
+
+    if (this.currentAIAudioChunks.length > 0) {
+      console.log(
+        'Ending AI utterance, audio chunks:',
+        this.currentAIAudioChunks.length
+      );
+
+      // Combine audio chunks for this utterance
+      const utteranceAudioData = this.combineAIAudioChunks();
+      const duration = Math.round(
+        (Date.now() - this.aiUtteranceStartTime) / 1000
+      );
+
+      // Create assistant message with audio content
+      this.addAssistantMessage({
+        audio: {
+          data: utteranceAudioData,
+          mimeType: 'audio/pcm;rate=24000',
+          duration,
+        },
+      });
+    }
+
+    this.currentAIAudioChunks = [];
+  }
+
+  /**
+   * Combine AI audio chunks into a single base64 string
+   */
+  private combineAIAudioChunks(): string {
+    if (this.currentAIAudioChunks.length === 0) {
+      return '';
+    }
+
+    try {
+      // Convert each base64 chunk to binary data
+      const binaryChunks = this.currentAIAudioChunks.map((chunk, index) => {
+        // Remove any data URL prefixes if present
+        const cleanChunk = chunk.replace(/^data:audio\/[^;]+;base64,/, '');
+        
+        // Validate base64 format
+        const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+        if (!base64Pattern.test(cleanChunk)) {
+          console.warn(`Invalid base64 format in AI audio chunk ${index}:`, cleanChunk.substring(0, 50));
+          return new Uint8Array(0); // Return empty array for invalid chunks
+        }
+        
+        let binaryString: string;
+        try {
+          binaryString = atob(cleanChunk);
+        } catch (error) {
+          console.warn(`Failed to decode base64 AI audio chunk ${index}:`, error);
+          return new Uint8Array(0); // Return empty array for failed decoding
+        }
+        
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+      }).filter(chunk => chunk.length > 0); // Filter out empty chunks
+
+      // Calculate total length
+      const totalLength = binaryChunks.reduce(
+        (sum, chunk) => sum + chunk.length,
+        0
+      );
+
+      // Combine all chunks
+      const combinedData = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of binaryChunks) {
+        combinedData.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      // Convert back to base64
+      const binaryString = Array.from(combinedData)
+        .map(byte => String.fromCharCode(byte))
+        .join('');
+      return btoa(binaryString);
+    } catch (error) {
+      console.error('Error combining AI audio chunks:', error);
+      return '';
+    }
   }
 
   /**
@@ -300,13 +494,38 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
       return;
     }
 
-    if (!session.audioRecording.data || session.audioRecording.data.length === 0) {
+    if (
+      !session.audioRecording.data ||
+      session.audioRecording.data.length === 0
+    ) {
       console.warn('Empty audio data for session:', sessionId);
       this.emit('transcription:failed', sessionId, 'Empty audio data');
       return;
     }
 
-    console.log('Starting transcription for session:', sessionId, 'Audio data length:', session.audioRecording.data.length);
+    // Validate base64 format to prevent InvalidCharacterError
+    const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+    if (!base64Pattern.test(session.audioRecording.data)) {
+      console.warn('Invalid base64 audio data format for session:', sessionId);
+      this.emit('transcription:failed', sessionId, 'Invalid audio data format');
+      return;
+    }
+
+    // Test base64 decoding to catch any encoding issues
+    try {
+      atob(session.audioRecording.data);
+    } catch (error) {
+      console.warn('Base64 decoding failed for session:', sessionId, error);
+      this.emit('transcription:failed', sessionId, 'Base64 decoding failed');
+      return;
+    }
+
+    console.log(
+      'Starting transcription for session:',
+      sessionId,
+      'Audio data length:',
+      session.audioRecording.data.length
+    );
     this.emit('transcription:started', sessionId);
 
     try {
@@ -358,6 +577,59 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
   /**
    * Combine audio chunks into a single base64 string
    */
+  /**
+   * Properly combine two base64 audio data strings
+   */
+  private combineBase64AudioData(existing: string, newData: string): string {
+    if (!existing) {
+      return newData;
+    }
+    if (!newData) {
+      return existing;
+    }
+
+    try {
+      // Clean and validate both base64 strings
+      const cleanExisting = existing.replace(/^data:audio\/[^;]+;base64,/, '');
+      const cleanNew = newData.replace(/^data:audio\/[^;]+;base64,/, '');
+      
+      const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+      if (!base64Pattern.test(cleanExisting) || !base64Pattern.test(cleanNew)) {
+        console.warn('Invalid base64 format in audio data');
+        return existing; // Return existing data if new data is invalid
+      }
+
+      // Decode both to binary
+      const existingBinary = atob(cleanExisting);
+      const newBinary = atob(cleanNew);
+      
+      // Convert to Uint8Arrays
+      const existingBytes = new Uint8Array(existingBinary.length);
+      const newBytes = new Uint8Array(newBinary.length);
+      
+      for (let i = 0; i < existingBinary.length; i++) {
+        existingBytes[i] = existingBinary.charCodeAt(i);
+      }
+      for (let i = 0; i < newBinary.length; i++) {
+        newBytes[i] = newBinary.charCodeAt(i);
+      }
+      
+      // Combine the arrays
+      const combined = new Uint8Array(existingBytes.length + newBytes.length);
+      combined.set(existingBytes, 0);
+      combined.set(newBytes, existingBytes.length);
+      
+      // Convert back to base64
+      const combinedBinary = Array.from(combined)
+        .map(byte => String.fromCharCode(byte))
+        .join('');
+      return btoa(combinedBinary);
+    } catch (error) {
+      console.warn('Error combining base64 audio data:', error);
+      return existing; // Return existing data on error
+    }
+  }
+
   private combineUserAudioChunks(): string {
     if (this.currentUserAudioChunks.length === 0) {
       return '';
@@ -365,16 +637,31 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
 
     try {
       // Convert each base64 chunk to binary data
-      const binaryChunks = this.currentUserAudioChunks.map(chunk => {
+      const binaryChunks = this.currentUserAudioChunks.map((chunk, index) => {
         // Remove any data URL prefixes if present
         const cleanChunk = chunk.replace(/^data:audio\/[^;]+;base64,/, '');
-        const binaryString = atob(cleanChunk);
+        
+        // Validate base64 format
+        const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+        if (!base64Pattern.test(cleanChunk)) {
+          console.warn(`Invalid base64 format in audio chunk ${index}:`, cleanChunk.substring(0, 50));
+          return new Uint8Array(0); // Return empty array for invalid chunks
+        }
+        
+        let binaryString: string;
+        try {
+          binaryString = atob(cleanChunk);
+        } catch (error) {
+          console.warn(`Failed to decode base64 audio chunk ${index}:`, error);
+          return new Uint8Array(0); // Return empty array for failed decoding
+        }
+        
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
         return bytes;
-      });
+      }).filter(chunk => chunk.length > 0); // Filter out empty chunks
 
       // Calculate total length
       const totalLength = binaryChunks.reduce(
@@ -401,52 +688,10 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
     }
   }
 
-  private combineAudioChunks(): string {
-    if (this.audioChunks.length === 0) {
-      return '';
-    }
-
-    try {
-      // Convert each base64 chunk to binary data
-      const binaryChunks = this.audioChunks.map(chunk => {
-        // Remove any data URL prefixes if present
-        const cleanChunk = chunk.replace(/^data:audio\/[^;]+;base64,/, '');
-        const binaryString = atob(cleanChunk);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes;
-      });
-
-      // Calculate total length
-      const totalLength = binaryChunks.reduce(
-        (sum, chunk) => sum + chunk.length,
-        0
-      );
-
-      // Combine all chunks into a single array
-      const combinedArray = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const chunk of binaryChunks) {
-        combinedArray.set(chunk, offset);
-        offset += chunk.length;
-      }
-
-      // Convert back to base64
-      let binaryString = '';
-      for (let i = 0; i < combinedArray.length; i++) {
-        binaryString += String.fromCharCode(combinedArray[i]);
-      }
-      return btoa(binaryString);
-    } catch (error) {
-      console.error('Error combining audio chunks:', error);
-      return '';
-    }
-  }
+  // Note: Old chunk combination methods removed - using continuous streams instead
 
   /**
-   * Setup event listeners for LiveAPI client
+   * Setup Live API event listeners for audio recording
    */
   setupLiveAPIListeners(client: GenAILiveClient): void {
     // Listen for content from the server (assistant messages)
@@ -470,8 +715,19 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
         );
 
         if (audioParts.length > 0) {
+          // Start AI utterance when we receive the first audio part
+          if (!this.isAISpeaking) {
+            this.startAIUtterance();
+          }
+
           const audioData = audioParts
-            .map(part => part.inlineData?.data)
+            .map(part => {
+              // Record each audio chunk for the AI utterance
+              if (part.inlineData?.data) {
+                this.recordAIAudioChunk(part.inlineData.data);
+              }
+              return part.inlineData?.data;
+            })
             .join('');
           this.addAssistantMessage({
             audio: {
@@ -506,12 +762,22 @@ export class ChatHistoryManager extends EventEmitter<ChatHistoryEvents> {
     client.on('turncomplete', () => {
       console.log('Turn complete - ending user utterance');
       this.endUserUtterance();
+      // Also end AI utterance if it's active
+      if (this.isAISpeaking) {
+        console.log('Turn complete - ending AI utterance');
+        this.endAIUtterance();
+      }
     });
 
     // Listen for interruption events
     client.on('interrupted', () => {
       console.log('Turn interrupted - ending user utterance');
       this.endUserUtterance();
+      // Also end AI utterance if it's active
+      if (this.isAISpeaking) {
+        console.log('Turn interrupted - ending AI utterance');
+        this.endAIUtterance();
+      }
     });
   }
 

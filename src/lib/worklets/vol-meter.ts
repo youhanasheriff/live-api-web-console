@@ -60,6 +60,9 @@ const VolMeterWorklet = `
 
       return true
     }
-  }`;
+  }
+
+  registerProcessor('vu-meter', VuMeter);
+`;
 
 export default VolMeterWorklet;

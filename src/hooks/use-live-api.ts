@@ -43,6 +43,7 @@ export function useLiveAPI(
     onMessage?: (message: any) => void;
     onContent?: (content: any) => void;
     onToolCall?: (toolCall: any) => void;
+    onAIAudioChunk?: (audioData: string) => void;
   }
 ): UseLiveAPIResults {
   const client = useMemo(() => new GenAILiveClient(options), [options]);
@@ -59,7 +60,7 @@ export function useLiveAPI(
       audioContext({ id: 'audio-out' }).then((audioCtx: AudioContext) => {
         audioStreamerRef.current = new AudioStreamer(audioCtx);
         audioStreamerRef.current
-          .addWorklet<any>('vumeter-out', VolMeterWorklet, (ev: any) => {
+          .addWorklet<any>('vu-meter', VolMeterWorklet, (ev: any) => {
             setVolume(ev.data.volume);
           })
           .then(() => {
@@ -68,6 +69,18 @@ export function useLiveAPI(
       });
     }
   }, [audioStreamerRef]);
+
+  useEffect(() => {
+    if (audioStreamerRef.current) {
+      audioStreamerRef.current.onAudioChunk = callbacks?.onAIAudioChunk;
+    }
+  }, [callbacks?.onAIAudioChunk]);
+
+  useEffect(() => {
+    if (audioStreamerRef.current) {
+      audioStreamerRef.current.gainNode.gain.value = volume;
+    }
+  }, [volume]);
 
   useEffect(() => {
     const onOpen = () => {

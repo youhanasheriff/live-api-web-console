@@ -38,7 +38,29 @@ export interface ChatSession {
     mimeType: string;
     duration: number;
   };
+  userAudioRecording?: {
+    data: string; // base64 encoded user audio only
+    mimeType: string;
+    duration: number;
+  };
+  aiAudioRecording?: {
+    data: string; // base64 encoded AI audio only
+    mimeType: string;
+    duration: number;
+  };
   transcription?: {
+    text: string;
+    confidence: number;
+    processedAt: Date;
+    service: 'openai' | 'google' | 'other';
+  };
+  userTranscription?: {
+    text: string;
+    confidence: number;
+    processedAt: Date;
+    service: 'openai' | 'google' | 'other';
+  };
+  aiTranscription?: {
     text: string;
     confidence: number;
     processedAt: Date;

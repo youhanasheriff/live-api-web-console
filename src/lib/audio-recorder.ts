@@ -18,7 +18,7 @@ import { audioContext } from './utils';
 import AudioRecordingWorklet from './worklets/audio-processing';
 import VolMeterWorklet from './worklets/vol-meter';
 
-import { createWorkletFromSrc } from './audioworklet-registry';
+
 import EventEmitter from 'eventemitter3';
 
 function arrayBufferToBase64(buffer: ArrayBuffer) {
@@ -57,14 +57,18 @@ export class AudioRecorder extends EventEmitter {
 
       // Load both worklet modules first
       const workletName = 'audio-recorder-worklet';
-      const src = createWorkletFromSrc(workletName, AudioRecordingWorklet);
+      const src = URL.createObjectURL(new Blob([AudioRecordingWorklet], { type: 'application/javascript' }));
       const vuWorkletName = 'vu-meter';
-      const vuSrc = createWorkletFromSrc(vuWorkletName, VolMeterWorklet);
+      const vuSrc = URL.createObjectURL(new Blob([VolMeterWorklet], { type: 'application/javascript' }));
 
       // Load modules sequentially to avoid race conditions
       try {
         await this.audioContext.audioWorklet.addModule(src);
         await this.audioContext.audioWorklet.addModule(vuSrc);
+
+        // Clean up blob URLs after loading
+        URL.revokeObjectURL(src);
+        URL.revokeObjectURL(vuSrc);
 
         // Create worklet nodes after both modules are loaded
         this.recordingWorklet = new AudioWorkletNode(

@@ -96,10 +96,32 @@ export class TranscriptionService {
    * Convert base64 audio data to blob
    */
   private convertBase64ToBlob(audioData: string, mimeType: string): Blob {
-    const binaryString = atob(audioData);
+    // Validate base64 format
+    const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+    if (!base64Pattern.test(audioData)) {
+      throw new Error('Invalid base64 audio data format');
+    }
+
+    // Validate that audioData is not empty
+    if (!audioData || audioData.trim().length === 0) {
+      throw new Error('Empty base64 audio data');
+    }
+
+    let binaryString: string;
+    try {
+      binaryString = atob(audioData);
+    } catch (error) {
+      throw new Error(`Failed to decode base64 audio data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    // Validate that we have actual audio data
+    if (bytes.length === 0) {
+      throw new Error('No audio data after base64 decoding');
     }
 
     // If it's PCM data, convert to WAV

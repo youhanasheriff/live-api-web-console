@@ -215,6 +215,32 @@ export class ChatHistoryStorageService {
     return false;
   }
 
+  updateSessionUserAudioRecording(
+    sessionId: string,
+    userAudioRecording: ChatSession['userAudioRecording']
+  ): boolean {
+    const session = this.getSession(sessionId);
+    if (session) {
+      session.userAudioRecording = userAudioRecording;
+      this.saveToStorage();
+      return true;
+    }
+    return false;
+  }
+
+  updateSessionAIAudioRecording(
+    sessionId: string,
+    aiAudioRecording: ChatSession['aiAudioRecording']
+  ): boolean {
+    const session = this.getSession(sessionId);
+    if (session) {
+      session.aiAudioRecording = aiAudioRecording;
+      this.saveToStorage();
+      return true;
+    }
+    return false;
+  }
+
   deleteSession(sessionId: string): boolean {
     const index = this.storage.sessions.findIndex(s => s.id === sessionId);
     if (index !== -1) {

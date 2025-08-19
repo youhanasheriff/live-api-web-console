@@ -48,6 +48,11 @@ export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({
       // Handle tool calls if needed for chat history
       console.log('Tool call:', toolCall);
     },
+    onAIAudioChunk: audioData => {
+      if (chatHistory) {
+        chatHistory.recordAIAudioChunk(audioData);
+      }
+    },
   });
 
   // Handle connection state changes for chat history

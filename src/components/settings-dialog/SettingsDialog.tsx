@@ -19,7 +19,6 @@ type FunctionDeclarationsTool = Tool & {
 };
 
 const SYSTEM_PROMPT_OPTIONS = [
-  { label: 'Custom', value: '' },
   { label: 'Requirements Analyst', value: REQUIREMENTS_ANALYST_PROMPT },
 ];
 
@@ -34,9 +33,9 @@ export default function SettingsDialog() {
       const matchingOption = SYSTEM_PROMPT_OPTIONS.find(
         option => option.value === currentInstruction
       );
-      return matchingOption ? matchingOption.label : 'Custom';
+      return matchingOption ? matchingOption.label : 'Requirements Analyst';
     }
-    return 'Custom';
+    return 'Requirements Analyst';
   }, [config.systemInstruction]);
 
   const [selectedPromptType, setSelectedPromptType] = useState(() =>
@@ -63,7 +62,7 @@ export default function SettingsDialog() {
   // system instructions can come in many types
   const systemInstruction = useMemo(() => {
     if (!config.systemInstruction) {
-      return '';
+      return REQUIREMENTS_ANALYST_PROMPT;
     }
     if (typeof config.systemInstruction === 'string') {
       return config.systemInstruction;
@@ -77,9 +76,12 @@ export default function SettingsDialog() {
       typeof config.systemInstruction === 'object' &&
       'parts' in config.systemInstruction
     ) {
-      return config.systemInstruction.parts?.map(p => p.text).join('\n') || '';
+      return (
+        config.systemInstruction.parts?.map(p => p.text).join('\n') ||
+        REQUIREMENTS_ANALYST_PROMPT
+      );
     }
-    return '';
+    return REQUIREMENTS_ANALYST_PROMPT;
   }, [config]);
 
   const updateConfig: FormEventHandler<HTMLTextAreaElement> = useCallback(

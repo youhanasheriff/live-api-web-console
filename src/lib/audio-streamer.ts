@@ -15,7 +15,6 @@
  */
 
 import {
-  createWorkletFromSrc,
   registeredWorklets,
 } from './audioworklet-registry';
 
@@ -36,6 +35,8 @@ export class AudioStreamer {
   private endOfQueueAudioSource: AudioBufferSourceNode | null = null;
 
   public onComplete = () => {};
+  // Callback for recording AI audio chunks for transcription
+  public onAudioChunk?: (audioData: string) => void;
 
   constructor(public context: AudioContext) {
     this.gainNode = this.context.createGain();
@@ -66,9 +67,11 @@ export class AudioStreamer {
     // create new record to fill in as becomes available
     workletsRecord[workletName] = { handlers: [handler] };
 
-    const src = createWorkletFromSrc(workletName, workletSrc);
+    const src = URL.createObjectURL(new Blob([workletSrc], { type: 'application/javascript' }));
     try {
       await this.context.audioWorklet.addModule(src);
+      // Clean up blob URL after loading
+      URL.revokeObjectURL(src);
       const worklet = new AudioWorkletNode(this.context, workletName);
 
       //add the node into the map
@@ -112,6 +115,14 @@ export class AudioStreamer {
   addPCM16(chunk: Uint8Array) {
     // Reset the stream complete flag when a new chunk is added.
     this.isStreamComplete = false;
+    
+    // Record AI audio chunk for transcription if callback is provided
+    if (this.onAudioChunk) {
+      // Convert Uint8Array to base64 for storage
+      const base64 = btoa(String.fromCharCode(...chunk));
+      this.onAudioChunk(base64);
+    }
+    
     // Process the chunk into a Float32Array
     let processingBuffer = this._processPCM16Chunk(chunk);
     // Add the processed buffer to the queue if it's larger than the buffer size.

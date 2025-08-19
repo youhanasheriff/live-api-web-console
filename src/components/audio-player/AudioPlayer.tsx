@@ -89,7 +89,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       if (mimeType.includes('pcm')) {
         // Convert PCM data to WAV format
-        const binaryString = atob(audioData);
+        let binaryString: string;
+        try {
+          binaryString = atob(audioData);
+        } catch (decodeError) {
+          console.error('Failed to decode base64 audio data:', decodeError);
+          setError('Failed to decode audio data');
+          return null;
+        }
+        
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i);
