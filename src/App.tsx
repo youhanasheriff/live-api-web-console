@@ -20,7 +20,7 @@ import { LiveAPIProvider } from "./contexts/LiveAPIContext";
 import SidePanel from "./components/side-panel/SidePanel";
 import { Altair } from "./components/altair/Altair";
 import ControlTray from "./components/control-tray/ControlTray";
-import StorageNotifications from "./components/storage/StorageNotifications";
+
 import cn from "classnames";
 import { LiveClientOptions } from "./types";
 
@@ -67,7 +67,7 @@ function App() {
             />
           </main>
         </div>
-        <StorageNotifications />
+
       </LiveAPIProvider>
     </div>
   );

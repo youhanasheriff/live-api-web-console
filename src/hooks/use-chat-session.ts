@@ -16,7 +16,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useLoggerStore } from '../lib/store-logger';
-import { chatStorage, ChatSession } from '../lib/chat-storage';
+
 import { StreamingLog } from '../types';
 
 interface SessionState {
@@ -84,20 +84,9 @@ export function useChatSession(connected: boolean, model: string): UseChatSessio
       return false;
     }
 
-    const result = chatStorage.saveSession(
-      sessionLogsRef.current,
-      model || 'unknown',
-      currentSession.startTime,
-      endTime
-    );
-    
-    if (result.success) {
-      console.log(`Session saved: ${sessionLogsRef.current.length} logs, ${Math.floor(duration / 1000)}s`);
-      return true;
-    } else {
-      console.error('Failed to save session:', result.error);
-      return false;
-    }
+    // Chat storage functionality removed
+    console.log(`Session completed: ${sessionLogsRef.current.length} logs, ${Math.floor(duration / 1000)}s`);
+    return true;
   }, [currentSession, model]);
 
   // Start a new session
@@ -219,17 +208,8 @@ export function useChatSession(connected: boolean, model: string): UseChatSessio
         const duration = currentSession.startTime ? endTime.getTime() - currentSession.startTime.getTime() : 0;
         
         if (duration >= MIN_SESSION_DURATION && sessionLogsRef.current.length > 0) {
-          // Use the storage service for synchronous save on unload
-          try {
-            chatStorage.saveSession(
-              sessionLogsRef.current,
-              model || 'unknown',
-              currentSession.startTime!,
-              endTime
-            );
-          } catch (error) {
-            console.error('Failed to save session on unload:', error);
-          }
+          // Chat storage functionality removed
+          console.log('Session ended on page unload');
         }
       }
     };

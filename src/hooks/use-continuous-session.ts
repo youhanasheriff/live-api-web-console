@@ -16,7 +16,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { StreamingLog } from '../types';
-import { chatStorage } from '../lib/chat-storage';
+
 import { useLoggerStore } from '../lib/store-logger';
 
 interface ContinuousSessionState {
@@ -73,26 +73,15 @@ export function useContinuousSession(model: string): UseContinuousSessionResults
     const now = new Date();
     const duration = now.getTime() - currentSession.startTime.getTime();
     
-    const result = chatStorage.saveSession(
-      logs,
-      model || 'unknown',
-      currentSession.startTime,
-      now
-    );
-    
-    if (result.success) {
-      lastSavedLogCountRef.current = logs.length;
-      setCurrentSession(prev => ({
-        ...prev,
-        lastSaveTime: now,
-        totalLogs: logs.length
-      }));
-      console.log(`Continuous session saved: ${logs.length} total logs, ${Math.floor(duration / 1000)}s duration`);
-      return true;
-    } else {
-      console.error('Failed to save continuous session:', result.error);
-      return false;
-    }
+    // Chat storage functionality removed
+    lastSavedLogCountRef.current = logs.length;
+    setCurrentSession(prev => ({
+      ...prev,
+      lastSaveTime: now,
+      totalLogs: logs.length
+    }));
+    console.log(`Continuous session completed: ${logs.length} total logs, ${Math.floor(duration / 1000)}s duration`);
+    return true;
   }, [currentSession, logs, model]);
 
   // Reset session (start fresh)
@@ -139,14 +128,8 @@ export function useContinuousSession(model: string): UseContinuousSessionResults
   useEffect(() => {
     return () => {
       if (currentSession.isActive && logs.length >= MIN_LOGS_FOR_SAVE) {
-        // Synchronous save on unmount
-        const now = new Date();
-        chatStorage.saveSession(
-          logs,
-          model || 'unknown',
-          currentSession.startTime,
-          now
-        );
+        // Chat storage functionality removed
+        console.log('Continuous session ended on unmount');
       }
     };
   }, [currentSession, logs, model]);
@@ -155,13 +138,8 @@ export function useContinuousSession(model: string): UseContinuousSessionResults
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (currentSession.isActive && logs.length >= MIN_LOGS_FOR_SAVE) {
-        const now = new Date();
-        chatStorage.saveSession(
-          logs,
-          model || 'unknown',
-          currentSession.startTime,
-          now
-        );
+        // Chat storage functionality removed
+        console.log('Continuous session ended on page unload');
       }
     };
 

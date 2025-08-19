@@ -22,7 +22,7 @@ import Select from "react-select";
 import { useLiveAPIContext } from "../../contexts/LiveAPIContext";
 import { useLoggerStore } from "../../lib/store-logger";
 import Logger, { LoggerFilterType } from "../logger/Logger";
-import ChatHistoryButton from "../chat-history/ChatHistoryButton";
+
 import AudioManagerButton from "../audio-manager/AudioManagerButton";
 import "./side-panel.scss";
 
@@ -83,7 +83,7 @@ export default function SidePanel() {
       <header className="top">
         <h2 id="console-title">Console</h2>
         <div className="header-actions">
-          <ChatHistoryButton className="history-button" />
+
           <AudioManagerButton className="audio-button" />
           {open ? (
             <button 
