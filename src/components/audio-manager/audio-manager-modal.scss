@@ -1,0 +1,757 @@
+/**
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Material Design 3 Color Tokens
+:root {
+  // Light theme colors
+  --md-sys-color-primary: #1976d2;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #e3f2fd;
+  --md-sys-color-on-primary-container: #0d47a1;
+  --md-sys-color-secondary: #5f6368;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #e8eaed;
+  --md-sys-color-on-secondary-container: #1f1f1f;
+  --md-sys-color-tertiary: #7c4dff;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-error: #d32f2f;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffebee;
+  --md-sys-color-on-error-container: #b71c1c;
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-on-surface: #1c1b1f;
+  --md-sys-color-surface-variant: #f5f5f5;
+  --md-sys-color-on-surface-variant: #49454f;
+  --md-sys-color-outline: #79747e;
+  --md-sys-color-outline-variant: #cac4d0;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-inverse-surface: #313033;
+  --md-sys-color-inverse-on-surface: #f4eff4;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f7f2fa;
+  --md-sys-color-surface-container: #f3edf7;
+  --md-sys-color-surface-container-high: #ece6f0;
+  --md-sys-color-surface-container-highest: #e6e0e9;
+  
+  // Success color
+  --md-sys-color-success: #4caf50;
+  --md-sys-color-on-success: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    // Dark theme colors
+    --md-sys-color-primary: #90caf9;
+    --md-sys-color-on-primary: #003258;
+    --md-sys-color-primary-container: #004881;
+    --md-sys-color-on-primary-container: #cce7ff;
+    --md-sys-color-secondary: #bdc1c6;
+    --md-sys-color-on-secondary: #2d3134;
+    --md-sys-color-secondary-container: #43474e;
+    --md-sys-color-on-secondary-container: #c9cccf;
+    --md-sys-color-tertiary: #bb86fc;
+    --md-sys-color-on-tertiary: #3700b3;
+    --md-sys-color-error: #f28b82;
+    --md-sys-color-on-error: #601410;
+    --md-sys-color-error-container: #8c1d18;
+    --md-sys-color-on-error-container: #f9dedc;
+    --md-sys-color-surface: #121212;
+    --md-sys-color-on-surface: #e6e1e5;
+    --md-sys-color-surface-variant: #2b2930;
+    --md-sys-color-on-surface-variant: #cac4d0;
+    --md-sys-color-outline: #938f99;
+    --md-sys-color-outline-variant: #49454f;
+    --md-sys-color-scrim: #000000;
+    --md-sys-color-inverse-surface: #e6e1e5;
+    --md-sys-color-inverse-on-surface: #313033;
+    --md-sys-color-surface-container-lowest: #0f0d13;
+    --md-sys-color-surface-container-low: #1d1b20;
+    --md-sys-color-surface-container: #211f26;
+    --md-sys-color-surface-container-high: #2b2930;
+    --md-sys-color-surface-container-highest: #36343b;
+    
+    // Success color
+    --md-sys-color-success: #81c784;
+    --md-sys-color-on-success: #1b5e20;
+  }
+}
+
+// Material Design 3 Typography Scale
+.md-typescale-headline-small {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 2rem;
+  letter-spacing: 0;
+}
+
+.md-typescale-title-medium {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  letter-spacing: 0.009375rem;
+}
+
+.md-typescale-body-medium {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  letter-spacing: 0.015625rem;
+}
+
+.md-typescale-body-small {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
+  letter-spacing: 0.025rem;
+}
+
+.md-typescale-label-large {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  letter-spacing: 0.00625rem;
+}
+
+// Material Design 3 Elevation
+@mixin md-elevation-1 {
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+}
+
+@mixin md-elevation-2 {
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+}
+
+@mixin md-elevation-3 {
+  box-shadow: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
+}
+
+@mixin md-elevation-4 {
+  box-shadow: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px 0px rgba(0, 0, 0, 0.3);
+}
+
+@mixin md-elevation-5 {
+  box-shadow: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+// Material Design 3 State Layers
+@mixin md-state-layer-hover {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--md-sys-color-on-surface);
+    opacity: 0;
+    transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+  }
+  
+  &:hover::before {
+    opacity: 0.08;
+  }
+}
+
+@mixin md-state-layer-focus {
+  &:focus::before {
+    opacity: 0.12;
+  }
+}
+
+@mixin md-state-layer-pressed {
+  &:active::before {
+    opacity: 0.12;
+  }
+}
+
+// Material Design 3 Shape
+@mixin md-shape-corner-extra-small {
+  border-radius: 4px;
+}
+
+@mixin md-shape-corner-small {
+  border-radius: 8px;
+}
+
+@mixin md-shape-corner-medium {
+  border-radius: 12px;
+}
+
+@mixin md-shape-corner-large {
+  border-radius: 16px;
+}
+
+@mixin md-shape-corner-extra-large {
+  border-radius: 28px;
+}
+
+// Audio Manager Modal Styles
+.audio-manager-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: md-fade-in 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes md-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes md-scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.audio-manager-modal {
+  background: var(--md-sys-color-surface-container-high);
+  @include md-shape-corner-extra-large;
+  width: 90vw;
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  @include md-elevation-5;
+  overflow: hidden;
+  animation: md-scale-in 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: var(--md-sys-color-surface-container-highest);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+
+  h2 {
+    @extend .md-typescale-headline-small;
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-surface-variant);
+    padding: 12px;
+    @include md-shape-corner-small;
+    cursor: pointer;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    @include md-state-layer-hover;
+    @include md-state-layer-focus;
+    @include md-state-layer-pressed;
+    
+    &:focus {
+      outline: none;
+    }
+
+    &:hover {
+      color: var(--md-sys-color-on-surface);
+    }
+  }
+}
+
+.modal-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 24px;
+  background: var(--md-sys-color-surface-container);
+}
+
+.storage-stats {
+  background: var(--md-sys-color-surface-container-highest);
+  @include md-shape-corner-medium;
+  padding: 20px;
+  @include md-elevation-1;
+
+  .stats-header {
+    h3 {
+      @extend .md-typescale-title-medium;
+      margin: 0 0 16px 0;
+      color: var(--md-sys-color-on-surface);
+    }
+  }
+
+  .stats-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    @extend .md-typescale-body-medium;
+
+    .stat-label {
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .stat-value {
+      color: var(--md-sys-color-on-surface);
+      font-weight: 500;
+    }
+  }
+
+  .usage-bar {
+    height: 8px;
+    background: var(--md-sys-color-outline-variant);
+    @include md-shape-corner-extra-small;
+    overflow: hidden;
+    margin-top: 12px;
+
+    .usage-fill {
+      height: 100%;
+      background: var(--md-sys-color-primary);
+      transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+      &.near-limit {
+        background: var(--md-sys-color-error);
+      }
+    }
+  }
+
+  .warning-message {
+    color: var(--md-sys-color-error);
+    @extend .md-typescale-body-small;
+    margin-top: 12px;
+    font-weight: 500;
+  }
+}
+
+.search-section {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+
+  .search-input-container {
+    flex: 1;
+    position: relative;
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 1.25rem;
+      z-index: 1;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      border: 1px solid var(--md-sys-color-outline);
+      @include md-shape-corner-small;
+      background: var(--md-sys-color-surface-container-highest);
+      color: var(--md-sys-color-on-surface);
+      @extend .md-typescale-body-medium;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &:focus {
+        outline: none;
+        border-color: var(--md-sys-color-primary);
+        border-width: 2px;
+        padding: 15px 15px 15px 47px; // Adjust for thicker border
+      }
+
+      &::placeholder {
+        color: var(--md-sys-color-on-surface-variant);
+      }
+    }
+  }
+
+  .clear-all-btn {
+    background: var(--md-sys-color-error);
+    color: var(--md-sys-color-on-error);
+    border: none;
+    padding: 16px 24px;
+    @include md-shape-corner-small;
+    @extend .md-typescale-label-large;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    @include md-elevation-1;
+    @include md-state-layer-hover;
+    @include md-state-layer-focus;
+    @include md-state-layer-pressed;
+    
+    &:focus {
+      outline: none;
+    }
+
+    &:hover {
+      @include md-elevation-2;
+    }
+    
+    &:active {
+      @include md-elevation-1;
+    }
+  }
+}
+
+.audio-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 8px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--md-sys-color-surface-container);
+    @include md-shape-corner-extra-small;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-outline);
+    @include md-shape-corner-extra-small;
+    transition: background 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      background: var(--md-sys-color-on-surface-variant);
+    }
+  }
+}
+
+.audio-list-item {
+  background: var(--md-sys-color-surface-container-highest);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  @include md-shape-corner-medium;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  @include md-elevation-1;
+  @include md-state-layer-hover;
+  @include md-state-layer-focus;
+  @include md-state-layer-pressed;
+  
+  &:focus {
+    outline: none;
+  }
+
+  &:hover {
+    border-color: var(--md-sys-color-primary);
+    @include md-elevation-2;
+  }
+
+  &.selected {
+    border-color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary-container);
+    @include md-elevation-2;
+  }
+
+  .audio-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .audio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+
+    .audio-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--md-sys-color-on-surface);
+      @extend .md-typescale-title-medium;
+
+      .audio-icon {
+        color: var(--md-sys-color-primary);
+        font-size: 1.25rem;
+      }
+    }
+
+    .audio-date {
+      color: var(--md-sys-color-on-surface-variant);
+      @extend .md-typescale-body-small;
+      white-space: nowrap;
+    }
+  }
+
+  .audio-details {
+    .audio-meta {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      @extend .md-typescale-body-small;
+      color: var(--md-sys-color-on-surface-variant);
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .duration {
+        color: var(--md-sys-color-on-surface);
+        font-weight: 500;
+      }
+    }
+  }
+
+  .playback-progress {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .progress-bar {
+      height: 6px;
+      background: var(--md-sys-color-outline-variant);
+      @include md-shape-corner-extra-small;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: var(--md-sys-color-primary);
+        transition: width 100ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+
+    .time-display {
+      @extend .md-typescale-body-small;
+      color: var(--md-sys-color-on-surface-variant);
+      align-self: flex-end;
+    }
+  }
+
+  .audio-actions {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    flex-shrink: 0;
+
+    .action-btn {
+      background: var(--md-sys-color-surface-container-highest);
+      border: 1px solid var(--md-sys-color-outline);
+      color: var(--md-sys-color-on-surface-variant);
+      padding: 12px;
+      @include md-shape-corner-small;
+      cursor: pointer;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      @include md-state-layer-hover;
+      @include md-state-layer-focus;
+      @include md-state-layer-pressed;
+      
+      &:focus {
+        outline: none;
+      }
+
+      &:hover {
+        color: var(--md-sys-color-on-surface);
+        border-color: var(--md-sys-color-outline-variant);
+        @include md-elevation-1;
+      }
+
+      &.play-btn {
+        &:hover {
+          color: var(--md-sys-color-primary);
+          border-color: var(--md-sys-color-primary);
+          background: var(--md-sys-color-primary-container);
+        }
+      }
+
+      &.download-btn {
+        &:hover {
+          color: var(--md-sys-color-success);
+          border-color: var(--md-sys-color-success);
+          background: rgba(76, 175, 80, 0.08);
+        }
+      }
+
+      &.delete-btn {
+        &:hover {
+          color: var(--md-sys-color-error);
+          border-color: var(--md-sys-color-error);
+          background: var(--md-sys-color-error-container);
+        }
+      }
+    }
+  }
+}
+
+.loading-message,
+.empty-message {
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 48px 24px;
+  @extend .md-typescale-body-medium;
+}
+
+.empty-message {
+  line-height: 1.5;
+}
+
+.error-message {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  padding: 16px 20px;
+  @include md-shape-corner-small;
+  border: 1px solid var(--md-sys-color-error);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  @extend .md-typescale-body-medium;
+  @include md-elevation-1;
+
+  button {
+    background: none;
+    border: none;
+    color: var(--md-sys-color-on-error-container);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: 16px;
+    @include md-shape-corner-small;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    @include md-state-layer-hover;
+    @include md-state-layer-focus;
+    @include md-state-layer-pressed;
+    
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+// Responsive design with Material Design breakpoints
+@media (max-width: 599px) {
+  .audio-manager-modal {
+    width: 95vw;
+    max-height: 90vh;
+    @include md-shape-corner-large;
+  }
+
+  .modal-content {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .modal-header {
+    padding: 20px;
+  }
+
+  .search-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+
+    .clear-all-btn {
+      align-self: flex-end;
+    }
+  }
+
+  .audio-list-item {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+
+    .audio-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+
+      .audio-date {
+        white-space: normal;
+      }
+    }
+
+    .audio-details .audio-meta {
+      gap: 16px;
+    }
+
+    .audio-actions {
+      align-self: center;
+    }
+  }
+
+  .storage-stats {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 359px) {
+  .audio-manager-modal {
+    width: 100vw;
+    height: 100vh;
+    max-height: none;
+    border-radius: 0;
+  }
+  
+  .modal-content {
+    padding: 16px;
+  }
+  
+  .modal-header {
+    padding: 16px;
+  }
+}

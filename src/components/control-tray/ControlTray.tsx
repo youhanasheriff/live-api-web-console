@@ -75,8 +75,26 @@ function ControlTray({
   const renderCanvasRef = useRef<HTMLCanvasElement>(null);
   const connectButtonRef = useRef<HTMLButtonElement>(null);
 
-  const { client, connected, connect, disconnect, volume } =
+  const { client, connected, connect, disconnect, volume, continuousSession, independentAudioRecording } =
     useLiveAPIContext();
+
+  const handleConnect = async () => {
+    try {
+      await connect();
+      // Audio recording is now independent and can be controlled separately
+    } catch (error) {
+      console.error('Failed to connect:', error);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+      // Audio recording continues independently of websocket connection
+    } catch (error) {
+      console.error('Failed to disconnect:', error);
+    }
+  };
 
   useEffect(() => {
     if (!connected && connectButtonRef.current) {
@@ -204,7 +222,7 @@ function ControlTray({
           <button
             ref={connectButtonRef}
             className={cn("action-button connect-toggle", { connected })}
-            onClick={connected ? disconnect : connect}
+            onClick={connected ? handleDisconnect : handleConnect}
           >
             <span className="material-symbols-outlined filled">
               {connected ? "pause" : "play_arrow"}

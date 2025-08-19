@@ -23,6 +23,7 @@ import { useLiveAPIContext } from "../../contexts/LiveAPIContext";
 import { useLoggerStore } from "../../lib/store-logger";
 import Logger, { LoggerFilterType } from "../logger/Logger";
 import ChatHistoryButton from "../chat-history/ChatHistoryButton";
+import AudioManagerButton from "../audio-manager/AudioManagerButton";
 import "./side-panel.scss";
 
 const filterOptions = [
@@ -80,6 +81,7 @@ export default function SidePanel() {
         <h2>Console</h2>
         <div className="header-actions">
           <ChatHistoryButton className="history-button" />
+          <AudioManagerButton className="audio-button" />
           {open ? (
             <button className="opener" onClick={() => setOpen(false)}>
               <RiSidebarFoldLine color="#b4b8bb" />

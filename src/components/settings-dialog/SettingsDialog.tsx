@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { RiSettings3Line, RiCloseLine } from "react-icons/ri";
 import "./settings-dialog.scss";
 import { useLiveAPIContext } from "../../contexts/LiveAPIContext";
 import VoiceSelector from "./VoiceSelector";
@@ -11,10 +12,11 @@ export default function SettingsDialog() {
   return (
     <div className="settings-dialog">
       <button
-        className="action-button material-symbols-outlined"
+        className="action-button"
         onClick={() => setOpen(!open)}
+        aria-label="Open settings"
       >
-        settings
+        <RiSettings3Line size={20} />
       </button>
       {open && createPortal(
         <>
@@ -24,10 +26,11 @@ export default function SettingsDialog() {
               <div className="modal-header">
                 <h2>Voice Settings</h2>
                 <button
-                  className="close-button material-symbols-outlined"
+                  className="close-button"
                   onClick={() => setOpen(false)}
+                  aria-label="Close settings"
                 >
-                  close
+                  <RiCloseLine size={20} />
                 </button>
               </div>
               <div className={`modal-content ${connected ? "disabled" : ""}`}>

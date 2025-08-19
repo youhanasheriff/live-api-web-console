@@ -184,13 +184,20 @@ export class ChatStorageService {
    * Deserialize session from storage
    */
   private deserializeSession(serialized: SerializedChatSession): ChatSession {
+    const parsedLogs = JSON.parse(serialized.logs);
+    // Convert date strings back to Date objects
+    const logs = parsedLogs.map((log: any) => ({
+      ...log,
+      date: new Date(log.date)
+    }));
+    
     return {
       id: serialized.id,
       title: serialized.title,
       startTime: new Date(serialized.startTime),
       endTime: new Date(serialized.endTime),
       duration: serialized.duration,
-      logs: JSON.parse(serialized.logs),
+      logs: logs,
       metadata: serialized.metadata
     };
   }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RiHistoryLine } from 'react-icons/ri';
 import ChatHistoryModal from './ChatHistoryModal';
 
 interface ChatHistoryButtonProps {
@@ -22,8 +23,9 @@ const ChatHistoryButton: React.FC<ChatHistoryButtonProps> = ({ className }) => {
         className={`action-button ${className || ''}`}
         onClick={handleOpenModal}
         title="Chat History"
+        aria-label="Open chat history"
       >
-        <span className="material-symbols-outlined">history</span>
+        <RiHistoryLine size={20} />
       </button>
       
       {isModalOpen && (

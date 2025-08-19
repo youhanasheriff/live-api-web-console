@@ -1,5 +1,9 @@
+// Import Material Design tokens
+@import './styles/material-design-tokens.scss';
+
 :root {
-  --text: white;
+  // Legacy color variables for backward compatibility
+  --text: var(--md-sys-color-on-surface);
   --gray-200: #b4b8bb;
   --gray-300: #80868b;
   --gray-500: #5f6368;
@@ -8,54 +12,142 @@
   --gray-800: #171717;
   --gray-900: #111111;
   --gray-1000: #0a0a0a;
-  --border-stroke: #444444;
-  --accent-blue: rgb(161, 228, 242);
-  --accent-blue-active-bg: #001233;
-  --accent-blue-active: #98beff;
-  --accent-blue-headers: #448dff;
-  --accent-green: rgb(168, 218, 181);
+  --border-stroke: var(--md-sys-color-outline);
+  --accent-blue: var(--md-sys-color-primary);
+  --accent-blue-active-bg: var(--md-sys-color-primary-container);
+  --accent-blue-active: var(--md-sys-color-primary);
+  --accent-blue-headers: var(--md-sys-color-primary);
+  --accent-green: var(--md-sys-color-tertiary);
 
-  --midnight-blue: rgb(0, 18, 51);
-  --blue-30: #99beff;
+  --midnight-blue: var(--md-sys-color-surface-variant);
+  --blue-30: var(--md-sys-color-primary);
 
-  --accent-red: #ff4600;
+  --accent-red: var(--md-sys-color-error);
 
-  --background: var(--gray-900);
-  --color: var(--text);
+  --background: var(--md-sys-color-surface);
+  --color: var(--md-sys-color-on-surface);
 
-  scrollbar-color: var(--gray-600) var(--gray-900);
+  scrollbar-color: var(--md-sys-color-outline) var(--md-sys-color-surface);
   scrollbar-width: thin;
 
-  --font-family: "Space Mono", monospace;
+  --font-family: var(--md-sys-typescale-body-large-font);
 
-  /* */
-  --Neutral-00: #000;
-  --Neutral-5: #181a1b;
-  --Neutral-10: #1c1f21;
-  --Neutral-15: #232729;
-  --Neutral-20: #2a2f31;
-  --Neutral-30: #404547;
-  --Neutral-50: #707577;
-  --Neutral-60: #888d8f;
-  --Neutral-80: #c3c6c7;
-  --Neutral-90: #e1e2e3;
+  // Legacy neutral colors mapped to Material Design
+  --Neutral-00: var(--md-sys-color-surface);
+  --Neutral-5: var(--md-sys-color-surface-dim);
+  --Neutral-10: var(--md-sys-color-surface-container-lowest);
+  --Neutral-15: var(--md-sys-color-surface-container-low);
+  --Neutral-20: var(--md-sys-color-surface-container);
+  --Neutral-30: var(--md-sys-color-surface-container-high);
+  --Neutral-50: var(--md-sys-color-outline-variant);
+  --Neutral-60: var(--md-sys-color-outline);
+  --Neutral-80: var(--md-sys-color-on-surface-variant);
+  --Neutral-90: var(--md-sys-color-on-surface);
 
-  --Green-500: #0d9c53;
-  --Green-700: #025022;
+  // Legacy semantic colors mapped to Material Design
+  --Green-500: var(--md-sys-color-tertiary);
+  --Green-700: var(--md-sys-color-tertiary-container);
 
-  --Blue-400: #80c1ff;
-  --Blue-500: #1f94ff;
-  --Blue-800: #0f3557;
+  --Blue-400: var(--md-sys-color-primary);
+  --Blue-500: var(--md-sys-color-primary);
+  --Blue-800: var(--md-sys-color-primary-container);
 
-  --Red-400: #ff9c7a;
-  --Red-500: #ff4600;
-  --Red-600: #e03c00;
-  --Red-700: #bd3000;
+  --Red-400: var(--md-sys-color-error);
+  --Red-500: var(--md-sys-color-error);
+  --Red-600: var(--md-sys-color-error);
+  --Red-700: var(--md-sys-color-error-container);
+}
+
+// Global Material Design base styles
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 body {
-  font-family: "Space Mono", monospace;
-  background: var(--Neutral-30);
+  margin: 0;
+  padding: 0;
+  font-family: var(--md-sys-typescale-body-large-font);
+  font-size: var(--md-sys-typescale-body-large-size);
+  font-weight: var(--md-sys-typescale-body-large-weight);
+  line-height: var(--md-sys-typescale-body-large-line-height);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Typography classes
+h1, .md-headline-large {
+  font-family: var(--md-sys-typescale-headline-large-font);
+  font-size: var(--md-sys-typescale-headline-large-size);
+  font-weight: var(--md-sys-typescale-headline-large-weight);
+  line-height: var(--md-sys-typescale-headline-large-line-height);
+  letter-spacing: var(--md-sys-typescale-headline-large-tracking);
+  margin: 0;
+}
+
+h2, .md-headline-medium {
+  font-family: var(--md-sys-typescale-headline-medium-font);
+  font-size: var(--md-sys-typescale-headline-medium-size);
+  font-weight: var(--md-sys-typescale-headline-medium-weight);
+  line-height: var(--md-sys-typescale-headline-medium-line-height);
+  letter-spacing: var(--md-sys-typescale-headline-medium-tracking);
+  margin: 0;
+}
+
+h3, .md-headline-small {
+  font-family: var(--md-sys-typescale-headline-small-font);
+  font-size: var(--md-sys-typescale-headline-small-size);
+  font-weight: var(--md-sys-typescale-headline-small-weight);
+  line-height: var(--md-sys-typescale-headline-small-line-height);
+  letter-spacing: var(--md-sys-typescale-headline-small-tracking);
+  margin: 0;
+}
+
+.md-title-large {
+  font-family: var(--md-sys-typescale-title-large-font);
+  font-size: var(--md-sys-typescale-title-large-size);
+  font-weight: var(--md-sys-typescale-title-large-weight);
+  line-height: var(--md-sys-typescale-title-large-line-height);
+  letter-spacing: var(--md-sys-typescale-title-large-tracking);
+}
+
+.md-title-medium {
+  font-family: var(--md-sys-typescale-title-medium-font);
+  font-size: var(--md-sys-typescale-title-medium-size);
+  font-weight: var(--md-sys-typescale-title-medium-weight);
+  line-height: var(--md-sys-typescale-title-medium-line-height);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.md-body-large {
+  font-family: var(--md-sys-typescale-body-large-font);
+  font-size: var(--md-sys-typescale-body-large-size);
+  font-weight: var(--md-sys-typescale-body-large-weight);
+  line-height: var(--md-sys-typescale-body-large-line-height);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+}
+
+.md-body-medium {
+  font-family: var(--md-sys-typescale-body-medium-font);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  font-weight: var(--md-sys-typescale-body-medium-weight);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.md-label-large {
+  font-family: var(--md-sys-typescale-label-large-font);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
 }
 
 .material-symbols-outlined {
@@ -116,20 +208,35 @@ body {
 }
 
 .streaming-console {
-  background: var(--Neutral-15);
-  color: var(--gray-300);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
   display: flex;
   height: 100vh;
   width: 100vw;
+  font-family: var(--md-sys-typescale-body-large-font);
 
   a,
   a:visited,
   a:active {
-    color: var(--gray-300);
+    color: var(--md-sys-color-primary);
+    text-decoration: none;
+    transition: color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+
+    &:hover {
+      color: var(--md-sys-color-primary);
+      text-decoration: underline;
+    }
+
+    &:focus {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+      border-radius: var(--md-sys-shape-corner-extra-small);
+    }
   }
 
   .disabled {
     pointer-events: none;
+    opacity: 0.38;
 
     > * {
       pointer-events: none;
@@ -143,9 +250,10 @@ body {
     align-items: center;
     justify-content: center;
     flex-grow: 1;
-    gap: 1rem;
+    gap: var(--md-sys-spacing-4);
     max-width: 100%;
     overflow: hidden;
+    padding: var(--md-sys-spacing-4);
   }
 
   .main-app-area {
@@ -153,6 +261,7 @@ body {
     flex: 1;
     align-items: center;
     justify-content: center;
+    padding: var(--md-sys-spacing-2);
   }
 
   .function-call {
@@ -161,6 +270,9 @@ body {
     width: 100%;
     height: 50%;
     overflow-y: auto;
+    background: var(--md-sys-color-surface-container-low);
+    border-radius: 0 0 var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large);
+    @include md-elevation-2;
   }
 }
 
@@ -168,6 +280,13 @@ body {
 .stream {
   flex-grow: 1;
   max-width: 90%;
-  border-radius: 32px;
+  border-radius: var(--md-sys-shape-corner-extra-large);
   max-height: fit-content;
+  @include md-elevation-3;
+  overflow: hidden;
+  transition: all var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+
+  &:hover {
+    @include md-elevation-4;
+  }
 }

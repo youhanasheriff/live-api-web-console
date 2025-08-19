@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-import { createContext, FC, ReactNode, useContext } from "react";
+import { createContext, FC, ReactNode, useContext, useEffect, useRef } from "react";
 import { useLiveAPI, UseLiveAPIResults } from "../hooks/use-live-api";
-import { useChatSession } from "../hooks/use-chat-session";
-import type { UseChatSessionResults } from "../hooks/use-chat-session";
+import { useContinuousSession } from "../hooks/use-continuous-session";
+import type { UseContinuousSessionResults } from "../hooks/use-continuous-session";
+import { useIndependentAudioRecording } from "../hooks/use-independent-audio-recording";
+import type { UseIndependentAudioRecordingResults } from "../hooks/use-independent-audio-recording";
 import { LiveClientOptions } from "../types";
 
 interface LiveAPIContextValue extends UseLiveAPIResults {
-  chatSession: UseChatSessionResults;
+  continuousSession: UseContinuousSessionResults;
+  independentAudioRecording: UseIndependentAudioRecordingResults;
 }
 
 const LiveAPIContext = createContext<LiveAPIContextValue | undefined>(undefined);
@@ -36,11 +39,27 @@ export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({
   children,
 }) => {
   const liveAPI = useLiveAPI(options);
-  const chatSession = useChatSession(liveAPI.connected, liveAPI.model);
+  const continuousSession = useContinuousSession(liveAPI.model);
+  const independentAudioRecording = useIndependentAudioRecording();
+  const audioStreamerRef = useRef<any>(null);
+
+  // Connect speaker audio when available and recording is active (independent of session state)
+  useEffect(() => {
+    if (liveAPI.audioStreamer && independentAudioRecording.isRecording) {
+      independentAudioRecording.connectSpeakerAudio(liveAPI.audioStreamer);
+      
+      return () => {
+        if (liveAPI.audioStreamer) {
+          independentAudioRecording.disconnectSpeakerAudio(liveAPI.audioStreamer);
+        }
+      };
+    }
+  }, [liveAPI.audioStreamer, independentAudioRecording.isRecording, independentAudioRecording]);
 
   const contextValue: LiveAPIContextValue = {
     ...liveAPI,
-    chatSession
+    continuousSession,
+    independentAudioRecording
   };
 
   return (

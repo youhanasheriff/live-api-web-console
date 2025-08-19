@@ -1,0 +1,577 @@
+/**
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Material Design 3 Global Design Tokens
+// This file contains all the design tokens for consistent Material Design implementation
+
+// ============================================================================
+// COLOR SYSTEM
+// ============================================================================
+
+// Material Design 3 Color Tokens
+:root {
+  // Light theme colors
+  --md-sys-color-primary: #1976d2;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #e3f2fd;
+  --md-sys-color-on-primary-container: #0d47a1;
+  --md-sys-color-secondary: #5f6368;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #e8eaed;
+  --md-sys-color-on-secondary-container: #1f1f1f;
+  --md-sys-color-tertiary: #7c4dff;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #e8eaf6;
+  --md-sys-color-on-tertiary-container: #3700b3;
+  --md-sys-color-error: #d32f2f;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffebee;
+  --md-sys-color-on-error-container: #b71c1c;
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-on-surface: #1c1b1f;
+  --md-sys-color-surface-variant: #f5f5f5;
+  --md-sys-color-on-surface-variant: #49454f;
+  --md-sys-color-outline: #79747e;
+  --md-sys-color-outline-variant: #cac4d0;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-inverse-surface: #313033;
+  --md-sys-color-inverse-on-surface: #f4eff4;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f7f2fa;
+  --md-sys-color-surface-container: #f3edf7;
+  --md-sys-color-surface-container-high: #ece6f0;
+  --md-sys-color-surface-container-highest: #e6e0e9;
+  
+  // Success color (custom addition)
+  --md-sys-color-success: #4caf50;
+  --md-sys-color-on-success: #ffffff;
+  --md-sys-color-success-container: #e8f5e8;
+  --md-sys-color-on-success-container: #1b5e20;
+  
+  // Warning color (custom addition)
+  --md-sys-color-warning: #ff9800;
+  --md-sys-color-on-warning: #ffffff;
+  --md-sys-color-warning-container: #fff3e0;
+  --md-sys-color-on-warning-container: #e65100;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    // Dark theme colors
+    --md-sys-color-primary: #90caf9;
+    --md-sys-color-on-primary: #003258;
+    --md-sys-color-primary-container: #004881;
+    --md-sys-color-on-primary-container: #cce7ff;
+    --md-sys-color-secondary: #bdc1c6;
+    --md-sys-color-on-secondary: #2d3134;
+    --md-sys-color-secondary-container: #43474e;
+    --md-sys-color-on-secondary-container: #c9cccf;
+    --md-sys-color-tertiary: #bb86fc;
+    --md-sys-color-on-tertiary: #3700b3;
+    --md-sys-color-tertiary-container: #4527a0;
+    --md-sys-color-on-tertiary-container: #d1c4e9;
+    --md-sys-color-error: #f28b82;
+    --md-sys-color-on-error: #601410;
+    --md-sys-color-error-container: #8c1d18;
+    --md-sys-color-on-error-container: #f9dedc;
+    --md-sys-color-surface: #121212;
+    --md-sys-color-on-surface: #e6e1e5;
+    --md-sys-color-surface-variant: #2b2930;
+    --md-sys-color-on-surface-variant: #cac4d0;
+    --md-sys-color-outline: #938f99;
+    --md-sys-color-outline-variant: #49454f;
+    --md-sys-color-scrim: #000000;
+    --md-sys-color-inverse-surface: #e6e1e5;
+    --md-sys-color-inverse-on-surface: #313033;
+    --md-sys-color-surface-container-lowest: #0f0d13;
+    --md-sys-color-surface-container-low: #1d1b20;
+    --md-sys-color-surface-container: #211f26;
+    --md-sys-color-surface-container-high: #2b2930;
+    --md-sys-color-surface-container-highest: #36343b;
+    
+    // Success color (custom addition)
+    --md-sys-color-success: #81c784;
+    --md-sys-color-on-success: #1b5e20;
+    --md-sys-color-success-container: #2e7d32;
+    --md-sys-color-on-success-container: #c8e6c9;
+    
+    // Warning color (custom addition)
+    --md-sys-color-warning: #ffb74d;
+    --md-sys-color-on-warning: #e65100;
+    --md-sys-color-warning-container: #f57c00;
+    --md-sys-color-on-warning-container: #fff8e1;
+  }
+}
+
+// ============================================================================
+// TYPOGRAPHY SYSTEM
+// ============================================================================
+
+// Material Design 3 Typography Scale
+.md-typescale-display-large {
+  font-family: 'Roboto', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 400;
+  line-height: 4rem;
+  letter-spacing: -0.015625rem;
+}
+
+.md-typescale-display-medium {
+  font-family: 'Roboto', sans-serif;
+  font-size: 2.8125rem;
+  font-weight: 400;
+  line-height: 3.25rem;
+  letter-spacing: 0;
+}
+
+.md-typescale-display-small {
+  font-family: 'Roboto', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 400;
+  line-height: 2.75rem;
+  letter-spacing: 0;
+}
+
+.md-typescale-headline-large {
+  font-family: 'Roboto', sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 2.5rem;
+  letter-spacing: 0;
+}
+
+.md-typescale-headline-medium {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 2.25rem;
+  letter-spacing: 0;
+}
+
+.md-typescale-headline-small {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 2rem;
+  letter-spacing: 0;
+}
+
+.md-typescale-title-large {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1.75rem;
+  letter-spacing: 0;
+}
+
+.md-typescale-title-medium {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  letter-spacing: 0.009375rem;
+}
+
+.md-typescale-title-small {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  letter-spacing: 0.00625rem;
+}
+
+.md-typescale-label-large {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  letter-spacing: 0.00625rem;
+}
+
+.md-typescale-label-medium {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  letter-spacing: 0.03125rem;
+}
+
+.md-typescale-label-small {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1rem;
+  letter-spacing: 0.03125rem;
+}
+
+.md-typescale-body-large {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5rem;
+  letter-spacing: 0.03125rem;
+}
+
+.md-typescale-body-medium {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  letter-spacing: 0.015625rem;
+}
+
+.md-typescale-body-small {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
+  letter-spacing: 0.025rem;
+}
+
+// ============================================================================
+// ELEVATION SYSTEM
+// ============================================================================
+
+// Material Design 3 Elevation
+@mixin md-elevation-0 {
+  box-shadow: none;
+}
+
+@mixin md-elevation-1 {
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+}
+
+@mixin md-elevation-2 {
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+}
+
+@mixin md-elevation-3 {
+  box-shadow: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3);
+}
+
+@mixin md-elevation-4 {
+  box-shadow: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px 0px rgba(0, 0, 0, 0.3);
+}
+
+@mixin md-elevation-5 {
+  box-shadow: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+// ============================================================================
+// STATE LAYER SYSTEM
+// ============================================================================
+
+// Material Design 3 State Layers
+@mixin md-state-layer-hover {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--md-sys-color-on-surface);
+    opacity: 0;
+    transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  
+  &:hover::before {
+    opacity: 0.08;
+  }
+}
+
+@mixin md-state-layer-focus {
+  &:focus::before {
+    opacity: 0.12;
+  }
+}
+
+@mixin md-state-layer-pressed {
+  &:active::before {
+    opacity: 0.12;
+  }
+}
+
+@mixin md-state-layer-selected {
+  &.selected::before {
+    opacity: 0.08;
+  }
+}
+
+@mixin md-state-layer-disabled {
+  &:disabled {
+    opacity: 0.38;
+    pointer-events: none;
+  }
+}
+
+// Combined state layer mixin
+@mixin md-state-layers {
+  @include md-state-layer-hover;
+  @include md-state-layer-focus;
+  @include md-state-layer-pressed;
+}
+
+// ============================================================================
+// SHAPE SYSTEM
+// ============================================================================
+
+// Material Design 3 Shape
+@mixin md-shape-corner-none {
+  border-radius: 0;
+}
+
+@mixin md-shape-corner-extra-small {
+  border-radius: 4px;
+}
+
+@mixin md-shape-corner-small {
+  border-radius: 8px;
+}
+
+@mixin md-shape-corner-medium {
+  border-radius: 12px;
+}
+
+@mixin md-shape-corner-large {
+  border-radius: 16px;
+}
+
+@mixin md-shape-corner-extra-large {
+  border-radius: 28px;
+}
+
+@mixin md-shape-corner-full {
+  border-radius: 50%;
+}
+
+// ============================================================================
+// MOTION SYSTEM
+// ============================================================================
+
+// Material Design 3 Motion Tokens
+:root {
+  // Duration tokens
+  --md-sys-motion-duration-short1: 50ms;
+  --md-sys-motion-duration-short2: 100ms;
+  --md-sys-motion-duration-short3: 150ms;
+  --md-sys-motion-duration-short4: 200ms;
+  --md-sys-motion-duration-medium1: 250ms;
+  --md-sys-motion-duration-medium2: 300ms;
+  --md-sys-motion-duration-medium3: 350ms;
+  --md-sys-motion-duration-medium4: 400ms;
+  --md-sys-motion-duration-long1: 450ms;
+  --md-sys-motion-duration-long2: 500ms;
+  --md-sys-motion-duration-long3: 550ms;
+  --md-sys-motion-duration-long4: 600ms;
+  
+  // Easing tokens
+  --md-sys-motion-easing-linear: cubic-bezier(0, 0, 1, 1);
+  --md-sys-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --md-sys-motion-easing-standard-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+
+// ============================================================================
+// COMPONENT MIXINS
+// ============================================================================
+
+// Button mixins
+@mixin md-button-base {
+  @extend .md-typescale-label-large;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  min-height: 40px;
+  @include md-shape-corner-extra-large;
+  transition: all var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+  @include md-state-layers;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:disabled {
+    @include md-state-layer-disabled;
+  }
+}
+
+@mixin md-button-filled {
+  @include md-button-base;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  @include md-elevation-0;
+  
+  &:hover {
+    @include md-elevation-1;
+  }
+}
+
+@mixin md-button-outlined {
+  @include md-button-base;
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+  
+  &:hover {
+    border-color: var(--md-sys-color-primary);
+  }
+}
+
+@mixin md-button-text {
+  @include md-button-base;
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  padding: 10px 12px;
+}
+
+@mixin md-icon-button {
+  background: transparent;
+  border: none;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  @include md-shape-corner-full;
+  transition: all var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+  @include md-state-layers;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:hover {
+    color: var(--md-sys-color-on-surface);
+  }
+}
+
+// Card mixins
+@mixin md-card-elevated {
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  @include md-shape-corner-medium;
+  @include md-elevation-1;
+  
+  &:hover {
+    @include md-elevation-2;
+  }
+}
+
+@mixin md-card-filled {
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  @include md-shape-corner-medium;
+  @include md-elevation-0;
+}
+
+@mixin md-card-outlined {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  @include md-shape-corner-medium;
+  @include md-elevation-0;
+}
+
+// Input field mixins
+@mixin md-text-field-base {
+  @extend .md-typescale-body-large;
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline);
+  @include md-shape-corner-small;
+  padding: 16px;
+  transition: all var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--md-sys-color-primary);
+    border-width: 2px;
+    padding: 15px; // Adjust for thicker border
+  }
+  
+  &::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+  }
+  
+  &:disabled {
+    background: var(--md-sys-color-surface-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    border-color: var(--md-sys-color-outline-variant);
+    opacity: 0.38;
+  }
+}
+
+// ============================================================================
+// UTILITY CLASSES
+// ============================================================================
+
+// Spacing utilities (based on 4px grid)
+.md-spacing-0 { margin: 0; }
+.md-spacing-1 { margin: 4px; }
+.md-spacing-2 { margin: 8px; }
+.md-spacing-3 { margin: 12px; }
+.md-spacing-4 { margin: 16px; }
+.md-spacing-5 { margin: 20px; }
+.md-spacing-6 { margin: 24px; }
+.md-spacing-8 { margin: 32px; }
+.md-spacing-10 { margin: 40px; }
+.md-spacing-12 { margin: 48px; }
+
+.md-padding-0 { padding: 0; }
+.md-padding-1 { padding: 4px; }
+.md-padding-2 { padding: 8px; }
+.md-padding-3 { padding: 12px; }
+.md-padding-4 { padding: 16px; }
+.md-padding-5 { padding: 20px; }
+.md-padding-6 { padding: 24px; }
+.md-padding-8 { padding: 32px; }
+.md-padding-10 { padding: 40px; }
+.md-padding-12 { padding: 48px; }
+
+// Color utilities
+.md-color-primary { color: var(--md-sys-color-primary); }
+.md-color-secondary { color: var(--md-sys-color-secondary); }
+.md-color-tertiary { color: var(--md-sys-color-tertiary); }
+.md-color-error { color: var(--md-sys-color-error); }
+.md-color-success { color: var(--md-sys-color-success); }
+.md-color-warning { color: var(--md-sys-color-warning); }
+.md-color-on-surface { color: var(--md-sys-color-on-surface); }
+.md-color-on-surface-variant { color: var(--md-sys-color-on-surface-variant); }
+
+// Background utilities
+.md-bg-surface { background: var(--md-sys-color-surface); }
+.md-bg-surface-container { background: var(--md-sys-color-surface-container); }
+.md-bg-surface-container-high { background: var(--md-sys-color-surface-container-high); }
+.md-bg-surface-container-highest { background: var(--md-sys-color-surface-container-highest); }
+.md-bg-primary { background: var(--md-sys-color-primary); }
+.md-bg-secondary { background: var(--md-sys-color-secondary); }
+.md-bg-error { background: var(--md-sys-color-error); }
+.md-bg-success { background: var(--md-sys-color-success); }
+.md-bg-warning { background: var(--md-sys-color-warning); }

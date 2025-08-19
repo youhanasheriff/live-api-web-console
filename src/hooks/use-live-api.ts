@@ -32,6 +32,7 @@ export type UseLiveAPIResults = {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   volume: number;
+  audioStreamer: AudioStreamer | null;
 };
 
 export function useLiveAPI(options: LiveClientOptions): UseLiveAPIResults {
@@ -118,5 +119,6 @@ export function useLiveAPI(options: LiveClientOptions): UseLiveAPIResults {
     connect,
     disconnect,
     volume,
+    audioStreamer: audioStreamerRef.current,
   };
 }

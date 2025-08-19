@@ -54,22 +54,24 @@ export default function VoiceSelector() {
         styles={{
           control: (baseStyles) => ({
             ...baseStyles,
-            background: "var(--Neutral-15)",
-            color: "var(--Neutral-90)",
+            background: "var(--md-sys-color-surface-container-highest)",
+            color: "var(--md-sys-color-on-surface)",
             minHeight: "40px",
-            border: "1px solid var(--Neutral-30)",
-            borderRadius: "8px",
+            border: "1px solid var(--md-sys-color-outline)",
+            borderRadius: "var(--md-sys-shape-corner-small)",
             boxShadow: "none",
+            fontFamily: "var(--md-sys-typescale-body-large-font)",
+            fontSize: "var(--md-sys-typescale-body-large-size)",
             "&:hover": {
-              borderColor: "var(--Neutral-50)",
+              borderColor: "var(--md-sys-color-on-surface)",
             },
           }),
           menu: (baseStyles) => ({
             ...baseStyles,
-            background: "var(--Neutral-15)",
-            border: "1px solid var(--Neutral-30)",
-            borderRadius: "8px",
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            background: "var(--md-sys-color-surface-container)",
+            border: "1px solid var(--md-sys-color-outline-variant)",
+            borderRadius: "var(--md-sys-shape-corner-small)",
+            boxShadow: "var(--md-sys-elevation-2)",
             zIndex: 9999,
           }),
           menuPortal: (baseStyles) => ({
@@ -79,32 +81,36 @@ export default function VoiceSelector() {
           option: (styles, { isFocused, isSelected }) => ({
             ...styles,
             backgroundColor: isFocused
-              ? "var(--Neutral-30)"
+              ? "var(--md-sys-color-surface-container-high)"
               : isSelected
-              ? "var(--Neutral-20)"
+              ? "var(--md-sys-color-secondary-container)"
               : "transparent",
-            color: "var(--Neutral-90)",
+            color: isSelected
+              ? "var(--md-sys-color-on-secondary-container)"
+              : "var(--md-sys-color-on-surface)",
             padding: "12px 16px",
+            fontFamily: "var(--md-sys-typescale-body-large-font)",
+            fontSize: "var(--md-sys-typescale-body-large-size)",
             "&:hover": {
-              backgroundColor: "var(--Neutral-30)",
+              backgroundColor: "var(--md-sys-color-surface-container-high)",
             },
           }),
           singleValue: (baseStyles) => ({
             ...baseStyles,
-            color: "var(--Neutral-90)",
+            color: "var(--md-sys-color-on-surface)",
           }),
           placeholder: (baseStyles) => ({
             ...baseStyles,
-            color: "var(--Neutral-70)",
+            color: "var(--md-sys-color-on-surface-variant)",
           }),
           indicatorSeparator: () => ({
             display: "none",
           }),
           dropdownIndicator: (baseStyles) => ({
             ...baseStyles,
-            color: "var(--Neutral-70)",
+            color: "var(--md-sys-color-on-surface-variant)",
             "&:hover": {
-              color: "var(--Neutral-90)",
+              color: "var(--md-sys-color-on-surface)",
             },
           }),
         }}

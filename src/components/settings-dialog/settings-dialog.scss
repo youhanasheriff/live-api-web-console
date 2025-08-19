@@ -1,10 +1,17 @@
+@import '../../styles/material-design-tokens.scss';
+
 .select-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--md-sys-spacing-1);
   height: 70px;
+  
   & > label {
-    font-size: 10px;
+    font-family: var(--md-sys-typescale-label-small-font);
+    font-size: var(--md-sys-typescale-label-small-size);
+    font-weight: var(--md-sys-typescale-label-small-weight);
+    color: var(--md-sys-color-on-surface-variant);
+    margin-bottom: var(--md-sys-spacing-1);
   }
 }
 
@@ -12,23 +19,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--md-sys-spacing-1);
   height: 70px;
 
   .action-button {
-    background: none;
-    border: 0;
-    color: var(--Neutral-80);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
+    @include md-icon-button;
+    color: var(--md-sys-color-on-surface-variant);
 
     &:hover {
-      background-color: var(--Neutral-20);
+      @include md-state-layer-hover;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    &:focus {
+      @include md-state-layer-focus;
     }
   }
-
 }
 
 // Modal backdrop - rendered in body via portal
@@ -38,7 +44,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--md-sys-color-scrim);
   z-index: 1000;
   backdrop-filter: blur(2px);
 }
@@ -58,7 +64,7 @@
   
   // Ensure perfect centering across all viewport sizes
   @media (max-width: 480px) {
-    padding: 16px;
+    padding: var(--md-sys-spacing-4);
     align-items: flex-start;
     padding-top: 10vh;
   }
@@ -67,36 +73,32 @@
     align-items: flex-start;
     padding-top: 5vh;
   }
-
 }
 
 // Modal dialog
 .modal-dialog {
-  background: var(--Neutral-5);
-  border-radius: 16px;
-  box-shadow: 0 24px 38px 3px rgba(0, 0, 0, 0.14),
-              0 9px 46px 8px rgba(0, 0, 0, 0.12),
-              0 11px 15px -7px rgba(0, 0, 0, 0.2);
+  background: var(--md-sys-color-surface-container-high);
+  @include md-shape-corner-extra-large;
+  @include md-elevation-3;
   max-width: 400px;
   min-width: 320px;
   max-height: 80vh;
   pointer-events: auto;
-  font-family: "Space mono";
-  color: var(--Neutral-80);
+  font-family: var(--md-sys-typescale-body-medium-font);
+  color: var(--md-sys-color-on-surface);
   overflow: visible;
-  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: modalSlideIn var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized);
   
   // Responsive sizing
   @media (max-width: 480px) {
     max-width: 100%;
     min-width: 280px;
-    margin: 0 16px;
+    margin: 0 var(--md-sys-spacing-4);
   }
   
   @media (max-height: 600px) {
     max-height: 90vh;
   }
-
 }
 
 // Modal header
@@ -104,36 +106,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 24px 16px 24px;
-  border-bottom: 1px solid var(--Neutral-20);
+  padding: var(--md-sys-spacing-6) var(--md-sys-spacing-6) var(--md-sys-spacing-4) var(--md-sys-spacing-6);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 
   h2 {
     margin: 0;
-    font-size: 20px;
-    font-weight: 500;
-    color: var(--Neutral-90);
+    font-family: var(--md-sys-typescale-headline-small-font);
+    font-size: var(--md-sys-typescale-headline-small-size);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    color: var(--md-sys-color-on-surface);
   }
 
   .close-button {
-    background: none;
-    border: 0;
-    color: var(--Neutral-70);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
+    @include md-icon-button;
+    color: var(--md-sys-color-on-surface-variant);
 
     &:hover {
-      background-color: var(--Neutral-20);
-      color: var(--Neutral-90);
+      @include md-state-layer-hover;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    &:focus {
+      @include md-state-layer-focus;
     }
   }
-
 }
 
 // Modal content
 .modal-content {
-  padding: 24px;
+  padding: var(--md-sys-spacing-6);
   overflow: visible;
   position: relative;
 
@@ -144,23 +146,23 @@
 }
 
 .connected-indicator {
-  background-color: var(--Neutral-15);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 16px;
+  background-color: var(--md-sys-color-surface-container-highest);
+  @include md-shape-corner-medium;
+  padding: var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-4);
+  font-family: var(--md-sys-typescale-body-medium-font);
+  font-size: var(--md-sys-typescale-body-medium-size);
   font-style: italic;
-  font-size: 14px;
-  color: var(--Neutral-70);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .voice-selector-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--md-sys-spacing-2);
   
   // Ensure dropdown doesn't get clipped
   .select-group {
-    position: relative;
     z-index: 10;
     
     .react-select {
@@ -173,9 +175,8 @@
         z-index: 1000;
         max-height: 200px;
         overflow-y: auto;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        @include md-shape-corner-medium;
+        @include md-elevation-2;
       }
       
       .react-select__menu-portal {
