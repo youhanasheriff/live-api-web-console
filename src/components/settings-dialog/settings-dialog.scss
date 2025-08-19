@@ -15,161 +15,184 @@
   gap: 4px;
   height: 70px;
 
-  .connected-indicator {
-    font-style: italic;
-  }
-
-  /*.connected-indicator {
-    &:before {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 0;
-      display: block;
-      content: "";
-      width: 100%;
-      height: 100%;
-      background-color: var(--Neutral-5);
-      opacity: 0.85;
-    }
-    z-index: 1;
-    
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--Neutral-80);
-
-    p {
-      z-index: 1;
-    }
-  }*/
-
-  h4 {
-    margin-left: 4px;
-    margin-bottom: 10px;
-  }
-
-  button {
+  .action-button {
     background: none;
     border: 0;
-  }
-
-  .dialog {
-    font-family: "Space mono";
-    background: var(--Neutral-5);
-    border-radius: 18px;
     color: var(--Neutral-80);
-    border: 0;
-    padding: 0;
-    margin: 0;
-    position: fixed;
-    top: -400px;
-    right: 0;
-    width: 696px;
-    height: 593px;
-    transform: translate(-25%, -50%);
-  }
-
-  .dialog-container {
-    box-sizing: border-box;
-    padding: 32px;
-    max-height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .small {
-    font-size: 80%;
-  }
-
-  .mode-selectors {
-    display: flex;
-    gap: 1rem;
-    padding: 8px 0;
-  }
-
-  textarea.system {
-    border-radius: 12px;
-    background-color: var(--Neutral-15);
-    color: var(--Neutral-80);
-    margin-top: 8px;
-    font-family:
-      Google Sans,
-      sans-serif;
-    line-height: 21px;
-    font-size: 16px;
-    field-sizing: content;
-    width: calc(100% - 16px);
-    min-height: 150px;
-    height: 150px;
+    cursor: pointer;
     padding: 8px;
-    border: 0;
-    resize: vertical;
-    box-sizing: border-box;
-  }
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
 
-  .function-declarations {
-    font-size: 66%;
-    width: 100%;
-    /* Enables vertical scrolling */
-  }
-
-  .fd-rows {
-    display: grid;
-    grid-template-columns: 1fr 0.5fr 1.5fr;
-    row-gap: 6px;
-    /* Three columns, last one takes remaining space */
-  }
-
-  .fd-row-name {
-    font-family: "Space mono";
-    font-size: 12px;
-    font-weight: bold;
-    color: var(--Blue-400);
-    font-weight: bold;
-    border-radius: 8px;
-    border: 1px solid var(--Neutral-20, #2a2f31);
-    padding: 10px;
-  }
-
-  .fd-row-args {
-    padding: 12px;
-  }
-
-  .fd-row-args > *:not(:last-child)::after {
-    content: ", ";
-  }
-
-  .fd-row {
-    display: contents;
-    color: var(--Neutral-70);
-    /* Make data-row participate in the grid layout of data-rows, without being an additional grid row */
-    align-items: center;
-    /* Vertically center the content of the row */
-    /* Bottom border for each row */
-    height: 35px;
-    /* The row height */
-  }
-
-  .fd-row-description {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: inherit;
-    font-size: inherit;
-    padding: 2px 4px;
-
-    &:hover,
-    &:focus {
-      background: var(--Neutral-20);
-      outline: none;
+    &:hover {
+      background-color: var(--Neutral-20);
     }
+  }
+
+}
+
+// Modal backdrop - rendered in body via portal
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+// Modal container - rendered in body via portal
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  pointer-events: none;
+  
+  // Ensure perfect centering across all viewport sizes
+  @media (max-width: 480px) {
+    padding: 16px;
+    align-items: flex-start;
+    padding-top: 10vh;
+  }
+  
+  @media (max-height: 600px) {
+    align-items: flex-start;
+    padding-top: 5vh;
+  }
+
+}
+
+// Modal dialog
+.modal-dialog {
+  background: var(--Neutral-5);
+  border-radius: 16px;
+  box-shadow: 0 24px 38px 3px rgba(0, 0, 0, 0.14),
+              0 9px 46px 8px rgba(0, 0, 0, 0.12),
+              0 11px 15px -7px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  min-width: 320px;
+  max-height: 80vh;
+  pointer-events: auto;
+  font-family: "Space mono";
+  color: var(--Neutral-80);
+  overflow: visible;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  // Responsive sizing
+  @media (max-width: 480px) {
+    max-width: 100%;
+    min-width: 280px;
+    margin: 0 16px;
+  }
+  
+  @media (max-height: 600px) {
+    max-height: 90vh;
+  }
+
+}
+
+// Modal header
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid var(--Neutral-20);
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--Neutral-90);
+  }
+
+  .close-button {
+    background: none;
+    border: 0;
+    color: var(--Neutral-70);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--Neutral-20);
+      color: var(--Neutral-90);
+    }
+  }
+
+}
+
+// Modal content
+.modal-content {
+  padding: 24px;
+  overflow: visible;
+  position: relative;
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.connected-indicator {
+  background-color: var(--Neutral-15);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--Neutral-70);
+}
+
+.voice-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  
+  // Ensure dropdown doesn't get clipped
+  .select-group {
+    position: relative;
+    z-index: 10;
+    
+    .react-select {
+      // Override any max-height constraints
+      .react-select__menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      
+      .react-select__menu-portal {
+        z-index: 1000;
+      }
+    }
+  }
+}
+
+// Animation keyframes
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }

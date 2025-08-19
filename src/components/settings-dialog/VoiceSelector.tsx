@@ -49,14 +49,32 @@ export default function VoiceSelector() {
         id="voice-selector"
         className="react-select"
         classNamePrefix="react-select"
+        menuPortalTarget={document.body}
+        menuPosition="fixed"
         styles={{
           control: (baseStyles) => ({
             ...baseStyles,
             background: "var(--Neutral-15)",
             color: "var(--Neutral-90)",
-            minHeight: "33px",
-            maxHeight: "33px",
-            border: 0,
+            minHeight: "40px",
+            border: "1px solid var(--Neutral-30)",
+            borderRadius: "8px",
+            boxShadow: "none",
+            "&:hover": {
+              borderColor: "var(--Neutral-50)",
+            },
+          }),
+          menu: (baseStyles) => ({
+            ...baseStyles,
+            background: "var(--Neutral-15)",
+            border: "1px solid var(--Neutral-30)",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            zIndex: 9999,
+          }),
+          menuPortal: (baseStyles) => ({
+            ...baseStyles,
+            zIndex: 9999,
           }),
           option: (styles, { isFocused, isSelected }) => ({
             ...styles,
@@ -64,7 +82,30 @@ export default function VoiceSelector() {
               ? "var(--Neutral-30)"
               : isSelected
               ? "var(--Neutral-20)"
-              : undefined,
+              : "transparent",
+            color: "var(--Neutral-90)",
+            padding: "12px 16px",
+            "&:hover": {
+              backgroundColor: "var(--Neutral-30)",
+            },
+          }),
+          singleValue: (baseStyles) => ({
+            ...baseStyles,
+            color: "var(--Neutral-90)",
+          }),
+          placeholder: (baseStyles) => ({
+            ...baseStyles,
+            color: "var(--Neutral-70)",
+          }),
+          indicatorSeparator: () => ({
+            display: "none",
+          }),
+          dropdownIndicator: (baseStyles) => ({
+            ...baseStyles,
+            color: "var(--Neutral-70)",
+            "&:hover": {
+              color: "var(--Neutral-90)",
+            },
           }),
         }}
         value={selectedOption}
