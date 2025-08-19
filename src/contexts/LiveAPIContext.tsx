@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import { createContext, FC, ReactNode, useContext, useEffect, useRef } from "react";
+import { createContext, FC, ReactNode, useContext, useEffect } from "react";
 import { useLiveAPI, UseLiveAPIResults } from "../hooks/use-live-api";
-import { useContinuousSession } from "../hooks/use-continuous-session";
-import type { UseContinuousSessionResults } from "../hooks/use-continuous-session";
 import { useIndependentAudioRecording } from "../hooks/use-independent-audio-recording";
 import type { UseIndependentAudioRecordingResults } from "../hooks/use-independent-audio-recording";
 import { LiveClientOptions } from "../types";
 
 interface LiveAPIContextValue extends UseLiveAPIResults {
-  continuousSession: UseContinuousSessionResults;
   independentAudioRecording: UseIndependentAudioRecordingResults;
 }
 
@@ -39,9 +36,7 @@ export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({
   children,
 }) => {
   const liveAPI = useLiveAPI(options);
-  const continuousSession = useContinuousSession(liveAPI.model);
   const independentAudioRecording = useIndependentAudioRecording();
-  const audioStreamerRef = useRef<any>(null);
 
   // Connect speaker audio when available and recording is active (independent of session state)
   useEffect(() => {
@@ -58,7 +53,6 @@ export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({
 
   const contextValue: LiveAPIContextValue = {
     ...liveAPI,
-    continuousSession,
     independentAudioRecording
   };
 

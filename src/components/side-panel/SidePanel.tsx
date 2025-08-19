@@ -39,12 +39,10 @@ export default function SidePanel() {
   const loggerLastHeightRef = useRef<number>(-1);
   const { log, logs } = useLoggerStore();
 
-  const [textInput, setTextInput] = useState("");
   const [selectedOption, setSelectedOption] = useState<{
     value: string;
     label: string;
   } | null>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   //scroll the log to the bottom when new logs come in
   useEffect(() => {
@@ -66,14 +64,7 @@ export default function SidePanel() {
     };
   }, [client, log]);
 
-  const handleSubmit = () => {
-    client.send([{ text: textInput }]);
 
-    setTextInput("");
-    if (inputRef.current) {
-      inputRef.current.innerText = "";
-    }
-  };
 
   return (
     <aside 
@@ -168,45 +159,7 @@ export default function SidePanel() {
           filter={(selectedOption?.value as LoggerFilterType) || "none"}
         />
       </div>
-      <div className={cn("input-container", { disabled: !connected })}>
-        <div className="input-content">
-          <textarea
-            className="input-area"
-            ref={inputRef}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSubmit();
-              }
-            }}
-            onChange={(e) => setTextInput(e.target.value)}
-            value={textInput}
-            placeholder="Type something..."
-            aria-label="Message input"
-            aria-describedby="console-title"
-            disabled={!connected}
-          ></textarea>
-          <span
-            className={cn("input-content-placeholder", {
-              hidden: textInput.length,
-            })}
-            aria-hidden="true"
-          >
-            Type&nbsp;something...
-          </span>
 
-          <button
-            className="send-button material-symbols-outlined filled"
-            onClick={handleSubmit}
-            type="button"
-            aria-label="Send message"
-            disabled={!connected || !textInput.trim()}
-          >
-            send
-          </button>
-        </div>
-      </div>
     </aside>
   );
 }

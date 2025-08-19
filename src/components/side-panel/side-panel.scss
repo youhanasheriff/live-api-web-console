@@ -153,11 +153,7 @@
       transform: translate(-50%, 0);
     }
 
-    .input-container {
-      opacity: 0;
-      display: none;
-      transition: all var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard) allow-discrete;
-    }
+
   }
 
   .indicators {
@@ -230,118 +226,7 @@
     scrollbar-color: var(--md-sys-color-outline-variant) var(--md-sys-color-surface-container-low);
   }
 
-  .input-container {
-    min-height: 72px;
-    flex-grow: 0;
-    flex-shrink: 0;
-    border-top: 1px solid var(--md-sys-color-outline-variant);
-    padding: var(--md-sys-spacing-4) var(--md-sys-spacing-6);
-    overflow: hidden;
-    background: var(--md-sys-color-surface-container-high);
 
-    .input-content {
-      position: relative;
-      background: var(--md-sys-color-surface-container);
-      border: 1px solid var(--md-sys-color-outline);
-      min-height: 40px;
-      @include md-shape-corner-large;
-      padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
-      transition: border-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
-      
-      &:focus-within {
-        border-color: var(--md-sys-color-primary);
-        @include md-elevation-1;
-      }
-
-      .send-button {
-        position: absolute;
-        top: 50%;
-        right: var(--md-sys-spacing-2);
-        transform: translate(0, -50%);
-        @include md-icon-button;
-        background: var(--md-sys-color-primary);
-        color: var(--md-sys-color-on-primary);
-        width: 32px;
-        height: 32px;
-        font-size: 18px;
-        z-index: 2;
-        
-        &:hover:not(:disabled) {
-          background: var(--md-sys-color-primary);
-          @include md-elevation-1;
-          @include md-state-layer-hover;
-        }
-        
-        &:focus-visible {
-          outline: 2px solid var(--md-sys-color-on-primary);
-          outline-offset: 2px;
-        }
-        
-        &:active:not(:disabled) {
-          @include md-state-layer-pressed;
-        }
-        
-        &:disabled {
-          background: var(--md-sys-color-surface-variant);
-          color: var(--md-sys-color-on-surface-variant);
-          opacity: 0.38;
-          cursor: not-allowed;
-        }
-      }
-
-      .input-area {
-        background: none;
-        color: var(--md-sys-color-on-surface);
-        field-sizing: content;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 2;
-        display: inline-block;
-        width: calc(100% - 48px);
-        min-height: 40px;
-        outline: none;
-        flex: 1;
-        word-break: break-word;
-        overflow: auto;
-        padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
-        border: 0;
-        resize: none;
-        font-family: var(--md-sys-typescale-body-large-font);
-        font-size: var(--md-sys-typescale-body-large-size);
-        line-height: var(--md-sys-typescale-body-large-line-height);
-        
-        &::placeholder {
-          color: var(--md-sys-color-on-surface-variant);
-        }
-      }
-
-      .input-content-placeholder {
-        position: absolute;
-        left: 0;
-        top: 0;
-        display: flex;
-        align-items: center;
-        z-index: 1;
-        height: 100%;
-        width: 100%;
-        user-select: none;
-        padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
-        white-space: pre-wrap;
-        color: var(--md-sys-color-on-surface-variant);
-        font-family: var(--md-sys-typescale-body-large-font);
-        font-size: var(--md-sys-typescale-body-large-size);
-        pointer-events: none;
-      }
-    }
-    
-    &.disabled {
-      .input-content {
-        opacity: 0.38;
-        pointer-events: none;
-      }
-    }
-  }
 }
 
 .side-panel.open {
@@ -368,10 +253,7 @@
     .side-panel-container {
       width: 100%;
     }
-    
-    .input-container {
-      padding: var(--md-sys-spacing-3);
-    }
+
   }
 }
 
@@ -423,10 +305,7 @@
     .streaming-indicator {
       border-width: 2px;
     }
-    
-    .input-content {
-      border-width: 2px;
-    }
+
   }
 }
 
