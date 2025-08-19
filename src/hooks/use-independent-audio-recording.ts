@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { sessionAudioRecorder, SessionAudioData } from '../lib/session-audio-recorder';
+import { SessionAudioRecorder, SessionAudioData } from '../lib/session-audio-recorder';
 import { sessionAudioStorage } from '../lib/session-audio-storage';
 import { AudioStreamer } from '../lib/audio-streamer';
 
@@ -51,12 +51,33 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
   const statusUpdateIntervalRef = useRef<number | null>(null);
   const connectedAudioNodesRef = useRef<Set<AudioNode>>(new Set());
   const currentRecordingIdRef = useRef<string | null>(null);
+  
+  // Create a separate recorder instance for independent recording
+  const independentRecorderRef = useRef<SessionAudioRecorder | null>(null);
+  
+  // Initialize the independent recorder
+  useEffect(() => {
+    if (!independentRecorderRef.current) {
+      independentRecorderRef.current = new SessionAudioRecorder({
+        sampleRate: 48000,
+        mimeType: 'audio/webm;codecs=opus',
+        audioBitsPerSecond: 128000
+      });
+    }
+    
+    return () => {
+      if (independentRecorderRef.current) {
+        // Cleanup on unmount
+        independentRecorderRef.current.removeAllListeners();
+      }
+    };
+  }, []);
 
   // Update recording status periodically
   useEffect(() => {
-    if (isRecording) {
+    if (isRecording && independentRecorderRef.current) {
       statusUpdateIntervalRef.current = window.setInterval(() => {
-        const status = sessionAudioRecorder.getRecordingStatus();
+        const status = independentRecorderRef.current!.getRecordingStatus();
         setRecordingStatus({
           sessionId: status.sessionId,
           startTime: status.startTime,
@@ -77,8 +98,12 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
     };
   }, [isRecording]);
 
-  // Set up event listeners for the session audio recorder
+  // Set up event listeners for the independent audio recorder
   useEffect(() => {
+    if (!independentRecorderRef.current) return;
+    
+    const recorder = independentRecorderRef.current;
+    
     const handleRecordingStarted = (data: { sessionId: string; startTime: Date }) => {
       console.log('Independent recording started:', data);
       setIsRecording(true);
@@ -113,14 +138,14 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
       currentRecordingIdRef.current = null;
     };
 
-    sessionAudioRecorder.on('recording-started', handleRecordingStarted);
-    sessionAudioRecorder.on('recording-completed', handleRecordingCompleted);
-    sessionAudioRecorder.on('error', handleRecordingError);
+    recorder.on('recording-started', handleRecordingStarted);
+    recorder.on('recording-completed', handleRecordingCompleted);
+    recorder.on('error', handleRecordingError);
 
     return () => {
-      sessionAudioRecorder.off('recording-started', handleRecordingStarted);
-      sessionAudioRecorder.off('recording-completed', handleRecordingCompleted);
-      sessionAudioRecorder.off('error', handleRecordingError);
+      recorder.off('recording-started', handleRecordingStarted);
+      recorder.off('recording-completed', handleRecordingCompleted);
+      recorder.off('error', handleRecordingError);
     };
   }, []);
 
@@ -135,7 +160,9 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
       setError(null);
       // Generate a unique recording ID independent of session management
       const recordingId = `audio_recording_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      await sessionAudioRecorder.startRecording(recordingId);
+      if (independentRecorderRef.current) {
+        await independentRecorderRef.current.startRecording(recordingId);
+      }
     } catch (error) {
       console.error('Failed to start independent recording:', error);
       setError(`Failed to start recording: ${(error as Error).message}`);
@@ -152,12 +179,14 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
 
     try {
       setError(null);
-      const sessionAudioData = await sessionAudioRecorder.stopRecording();
+      const sessionAudioData = independentRecorderRef.current ? await independentRecorderRef.current.stopRecording() : null;
       
       // Disconnect any connected audio nodes
       connectedAudioNodesRef.current.forEach(node => {
         try {
-          sessionAudioRecorder.disconnectSpeakerAudio(node);
+          if (independentRecorderRef.current) {
+            independentRecorderRef.current.disconnectSpeakerAudio(node);
+          }
         } catch (error) {
           console.warn('Error disconnecting audio node:', error);
         }
@@ -181,8 +210,10 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
 
     try {
       // Use the gainNode from the AudioStreamer as the audio node
-      sessionAudioRecorder.connectSpeakerAudio(audioStreamer.gainNode);
-      connectedAudioNodesRef.current.add(audioStreamer.gainNode);
+      if (independentRecorderRef.current) {
+        independentRecorderRef.current.connectSpeakerAudio(audioStreamer.gainNode);
+        connectedAudioNodesRef.current.add(audioStreamer.gainNode);
+      }
       console.log('Speaker audio connected to independent recording');
     } catch (error) {
       console.error('Failed to connect speaker audio:', error);
@@ -195,7 +226,9 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
     try {
       // Disconnect the specific gainNode from the AudioStreamer
       if (connectedAudioNodesRef.current.has(audioStreamer.gainNode)) {
-        sessionAudioRecorder.disconnectSpeakerAudio(audioStreamer.gainNode);
+        if (independentRecorderRef.current) {
+          independentRecorderRef.current.disconnectSpeakerAudio(audioStreamer.gainNode);
+        }
         connectedAudioNodesRef.current.delete(audioStreamer.gainNode);
         console.log('Speaker audio disconnected from independent recording');
       }
@@ -217,14 +250,16 @@ export function useIndependentAudioRecording(): UseIndependentAudioRecordingResu
       }
       
       // Stop recording if active
-      if (isRecording && currentRecordingIdRef.current) {
-        sessionAudioRecorder.stopRecording().catch(console.error);
+      if (isRecording && currentRecordingIdRef.current && independentRecorderRef.current) {
+        independentRecorderRef.current.stopRecording().catch(console.error);
       }
       
       // Disconnect all audio nodes
       connectedAudioNodesRef.current.forEach(node => {
         try {
-          sessionAudioRecorder.disconnectSpeakerAudio(node);
+          if (independentRecorderRef.current) {
+            independentRecorderRef.current.disconnectSpeakerAudio(node);
+          }
         } catch (error) {
           console.warn('Error disconnecting audio node on cleanup:', error);
         }

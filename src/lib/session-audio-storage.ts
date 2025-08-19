@@ -26,6 +26,8 @@ export interface StoredSessionAudio {
   mimeType: string;
   size: number;
   createdAt: Date;
+  recordingType: 'session' | 'independent'; // Distinguish between session and independent recordings
+  isComplete: boolean; // Whether the session was completed normally
 }
 
 export interface AudioStorageResult {
@@ -36,7 +38,11 @@ export interface AudioStorageResult {
 
 export interface AudioStorageStats {
   totalSessions: number;
+  sessionRecordings: number;
+  independentRecordings: number;
   totalSize: number;
+  sessionRecordingsSize: number;
+  independentRecordingsSize: number;
   oldestSession?: Date;
   newestSession?: Date;
   availableSpace: number;
@@ -128,7 +134,9 @@ export class SessionAudioStorage {
         audioBlob: sessionAudioData.audioBlob,
         mimeType: sessionAudioData.audioBlob.type,
         size: sessionAudioData.audioBlob.size,
-        createdAt: new Date()
+        createdAt: new Date(),
+        recordingType: 'session',
+        isComplete: true
       };
 
       return new Promise((resolve) => {
@@ -319,7 +327,11 @@ export class SessionAudioStorage {
 
           const stats: AudioStorageStats = {
             totalSessions: sessions.length,
+            sessionRecordings: sessions.filter(s => s.recordingType === 'session').length,
+            independentRecordings: sessions.filter(s => s.recordingType === 'independent').length,
             totalSize,
+            sessionRecordingsSize: sessions.filter(s => s.recordingType === 'session').reduce((sum, s) => sum + s.size, 0),
+            independentRecordingsSize: sessions.filter(s => s.recordingType === 'independent').reduce((sum, s) => sum + s.size, 0),
             oldestSession: dates.length > 0 ? dates[0] : undefined,
             newestSession: dates.length > 0 ? dates[dates.length - 1] : undefined,
             availableSpace: Math.max(0, this.maxStorageSize - totalSize),
@@ -332,7 +344,11 @@ export class SessionAudioStorage {
         request.onerror = () => {
           resolve({
             totalSessions: 0,
+            sessionRecordings: 0,
+            independentRecordings: 0,
             totalSize: 0,
+            sessionRecordingsSize: 0,
+            independentRecordingsSize: 0,
             availableSpace: this.maxStorageSize,
             isNearLimit: false
           });
@@ -341,7 +357,11 @@ export class SessionAudioStorage {
     } catch (error) {
       return {
         totalSessions: 0,
+        sessionRecordings: 0,
+        independentRecordings: 0,
         totalSize: 0,
+        sessionRecordingsSize: 0,
+        independentRecordingsSize: 0,
         availableSpace: this.maxStorageSize,
         isNearLimit: false
       };
