@@ -76,43 +76,65 @@ export default function SidePanel() {
   };
 
   return (
-    <div className={`side-panel ${open ? "open" : ""}`}>
+    <aside 
+      className={`side-panel ${open ? "open" : ""}`}
+      aria-label="Console navigation panel"
+    >
       <header className="top">
-        <h2>Console</h2>
+        <h2 id="console-title">Console</h2>
         <div className="header-actions">
           <ChatHistoryButton className="history-button" />
           <AudioManagerButton className="audio-button" />
           {open ? (
-            <button className="opener" onClick={() => setOpen(false)}>
-              <RiSidebarFoldLine color="#b4b8bb" />
+            <button 
+              className="opener" 
+              onClick={() => setOpen(false)}
+              aria-label="Collapse console panel"
+              aria-expanded="true"
+              aria-controls="side-panel-content"
+              type="button"
+            >
+              <RiSidebarFoldLine aria-hidden="true" />
             </button>
           ) : (
-            <button className="opener" onClick={() => setOpen(true)}>
-              <RiSidebarUnfoldLine color="#b4b8bb" />
+            <button 
+              className="opener" 
+              onClick={() => setOpen(true)}
+              aria-label="Expand console panel"
+              aria-expanded="false"
+              aria-controls="side-panel-content"
+              type="button"
+            >
+              <RiSidebarUnfoldLine aria-hidden="true" />
             </button>
           )}
         </div>
       </header>
-      <section className="indicators">
+      <section className="indicators" aria-label="Console controls">
         <Select
           className="react-select"
           classNamePrefix="react-select"
           styles={{
             control: (baseStyles) => ({
               ...baseStyles,
-              background: "var(--Neutral-15)",
-              color: "var(--Neutral-90)",
+              background: "var(--md-sys-color-surface-container)",
+              color: "var(--md-sys-color-on-surface)",
               minHeight: "33px",
               maxHeight: "33px",
-              border: 0,
+              border: `1px solid var(--md-sys-color-outline-variant)`,
             }),
             option: (styles, { isFocused, isSelected }) => ({
               ...styles,
               backgroundColor: isFocused
-                ? "var(--Neutral-30)"
+                ? "var(--md-sys-color-secondary-container)"
                 : isSelected
-                  ? "var(--Neutral-20)"
-                  : undefined,
+                  ? "var(--md-sys-color-primary-container)"
+                  : "var(--md-sys-color-surface)",
+              color: isFocused
+                ? "var(--md-sys-color-on-secondary-container)"
+                : isSelected
+                  ? "var(--md-sys-color-on-primary-container)"
+                  : "var(--md-sys-color-on-surface)",
             }),
           }}
           defaultValue={selectedOption}
@@ -120,14 +142,28 @@ export default function SidePanel() {
           onChange={(e) => {
             setSelectedOption(e);
           }}
+          aria-label="Filter console logs"
+          placeholder="Select filter"
         />
-        <div className={cn("streaming-indicator", { connected })}>
+        <div 
+          className={cn("streaming-indicator", { connected })}
+          role="status"
+          aria-live="polite"
+          aria-label={connected ? "Connection active" : "Connection paused"}
+        >
           {connected
             ? `🔵${open ? " Streaming" : ""}`
             : `⏸️${open ? " Paused" : ""}`}
         </div>
       </section>
-      <div className="side-panel-container" ref={loggerRef}>
+      <div 
+        id="side-panel-content"
+        className="side-panel-container" 
+        ref={loggerRef}
+        role="log"
+        aria-label="Console output"
+        aria-live="polite"
+      >
         <Logger
           filter={(selectedOption?.value as LoggerFilterType) || "none"}
         />
@@ -146,11 +182,16 @@ export default function SidePanel() {
             }}
             onChange={(e) => setTextInput(e.target.value)}
             value={textInput}
+            placeholder="Type something..."
+            aria-label="Message input"
+            aria-describedby="console-title"
+            disabled={!connected}
           ></textarea>
           <span
             className={cn("input-content-placeholder", {
               hidden: textInput.length,
             })}
+            aria-hidden="true"
           >
             Type&nbsp;something...
           </span>
@@ -158,11 +199,14 @@ export default function SidePanel() {
           <button
             className="send-button material-symbols-outlined filled"
             onClick={handleSubmit}
+            type="button"
+            aria-label="Send message"
+            disabled={!connected || !textInput.trim()}
           >
             send
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

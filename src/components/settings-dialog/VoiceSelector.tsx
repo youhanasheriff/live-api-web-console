@@ -52,27 +52,37 @@ export default function VoiceSelector() {
         menuPortalTarget={document.body}
         menuPosition="fixed"
         styles={{
-          control: (baseStyles) => ({
+          control: (baseStyles, { isFocused }) => ({
             ...baseStyles,
             background: "var(--md-sys-color-surface-container-highest)",
             color: "var(--md-sys-color-on-surface)",
-            minHeight: "40px",
-            border: "1px solid var(--md-sys-color-outline)",
+            minHeight: "48px",
+            border: isFocused 
+              ? "2px solid var(--md-sys-color-primary)"
+              : "1px solid var(--md-sys-color-outline)",
             borderRadius: "var(--md-sys-shape-corner-small)",
-            boxShadow: "none",
+            boxShadow: isFocused 
+              ? "0 0 0 1px var(--md-sys-color-primary)"
+              : "none",
             fontFamily: "var(--md-sys-typescale-body-large-font)",
             fontSize: "var(--md-sys-typescale-body-large-size)",
+            fontWeight: "var(--md-sys-typescale-body-large-weight)",
+            lineHeight: "var(--md-sys-typescale-body-large-line-height)",
+            transition: "all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard)",
             "&:hover": {
-              borderColor: "var(--md-sys-color-on-surface)",
+              borderColor: isFocused 
+                ? "var(--md-sys-color-primary)"
+                : "var(--md-sys-color-on-surface)",
             },
           }),
           menu: (baseStyles) => ({
             ...baseStyles,
             background: "var(--md-sys-color-surface-container)",
             border: "1px solid var(--md-sys-color-outline-variant)",
-            borderRadius: "var(--md-sys-shape-corner-small)",
-            boxShadow: "var(--md-sys-elevation-2)",
+            borderRadius: "var(--md-sys-shape-corner-medium)",
+            boxShadow: "var(--md-sys-elevation-3)",
             zIndex: 9999,
+            marginTop: "var(--md-sys-spacing-1)",
           }),
           menuPortal: (baseStyles) => ({
             ...baseStyles,
@@ -88,30 +98,43 @@ export default function VoiceSelector() {
             color: isSelected
               ? "var(--md-sys-color-on-secondary-container)"
               : "var(--md-sys-color-on-surface)",
-            padding: "12px 16px",
+            padding: "var(--md-sys-spacing-3) var(--md-sys-spacing-4)",
             fontFamily: "var(--md-sys-typescale-body-large-font)",
             fontSize: "var(--md-sys-typescale-body-large-size)",
-            "&:hover": {
-              backgroundColor: "var(--md-sys-color-surface-container-high)",
+            fontWeight: "var(--md-sys-typescale-body-large-weight)",
+            lineHeight: "var(--md-sys-typescale-body-large-line-height)",
+            cursor: "pointer",
+            transition: "background-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard)",
+            "&:active": {
+              backgroundColor: "var(--md-sys-color-surface-container-highest)",
             },
           }),
           singleValue: (baseStyles) => ({
             ...baseStyles,
             color: "var(--md-sys-color-on-surface)",
+            fontWeight: "var(--md-sys-typescale-body-large-weight)",
           }),
           placeholder: (baseStyles) => ({
             ...baseStyles,
             color: "var(--md-sys-color-on-surface-variant)",
+            fontStyle: "italic",
           }),
           indicatorSeparator: () => ({
             display: "none",
           }),
-          dropdownIndicator: (baseStyles) => ({
+          dropdownIndicator: (baseStyles, { isFocused }) => ({
             ...baseStyles,
-            color: "var(--md-sys-color-on-surface-variant)",
+            color: isFocused 
+              ? "var(--md-sys-color-primary)"
+              : "var(--md-sys-color-on-surface-variant)",
+            transition: "color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard)",
             "&:hover": {
               color: "var(--md-sys-color-on-surface)",
             },
+          }),
+          valueContainer: (baseStyles) => ({
+            ...baseStyles,
+            padding: "0 var(--md-sys-spacing-4)",
           }),
         }}
         value={selectedOption}

@@ -1,16 +1,20 @@
 @import '../../styles/material-design-tokens.scss';
 
+// ============================================================================
+// MATERIAL DESIGN 3 SETTINGS DIALOG
+// ============================================================================
+
 .select-group {
   display: flex;
   flex-direction: column;
-  gap: var(--md-sys-spacing-1);
-  height: 70px;
+  gap: var(--md-sys-spacing-2);
   
   & > label {
-    font-family: var(--md-sys-typescale-label-small-font);
-    font-size: var(--md-sys-typescale-label-small-size);
-    font-weight: var(--md-sys-typescale-label-small-weight);
-    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-sys-typescale-label-large-font);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    color: var(--md-sys-color-on-surface);
     margin-bottom: var(--md-sys-spacing-1);
   }
 }
@@ -19,20 +23,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--md-sys-spacing-1);
-  height: 70px;
 
   .action-button {
     @include md-icon-button;
     color: var(--md-sys-color-on-surface-variant);
+    transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
 
     &:hover {
       @include md-state-layer-hover;
       color: var(--md-sys-color-on-surface);
+      transform: scale(1.05);
     }
 
     &:focus {
       @include md-state-layer-focus;
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 }
@@ -45,8 +55,10 @@
   width: 100vw;
   height: 100vh;
   background-color: var(--md-sys-color-scrim);
-  z-index: 1000;
-  backdrop-filter: blur(2px);
+  opacity: var(--md-sys-state-scrim-opacity);
+  z-index: var(--md-sys-z-index-modal);
+  backdrop-filter: blur(4px);
+  animation: backdropFadeIn var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
 }
 
 // Modal container - rendered in body via portal
@@ -59,12 +71,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1001;
+  z-index: calc(var(--md-sys-z-index-modal) + 1);
   pointer-events: none;
+  padding: var(--md-sys-spacing-4);
   
-  // Ensure perfect centering across all viewport sizes
+  // Responsive adjustments
   @media (max-width: 480px) {
-    padding: var(--md-sys-spacing-4);
+    padding: var(--md-sys-spacing-3);
     align-items: flex-start;
     padding-top: 10vh;
   }
@@ -79,25 +92,27 @@
 .modal-dialog {
   background: var(--md-sys-color-surface-container-high);
   @include md-shape-corner-extra-large;
-  @include md-elevation-3;
-  max-width: 400px;
+  @include md-elevation-5;
+  width: 100%;
+  max-width: 420px;
   min-width: 320px;
-  max-height: 80vh;
+  max-height: 85vh;
   pointer-events: auto;
   font-family: var(--md-sys-typescale-body-medium-font);
   color: var(--md-sys-color-on-surface);
-  overflow: visible;
+  overflow: hidden;
   animation: modalSlideIn var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized);
+  border: 1px solid var(--md-sys-color-outline-variant);
   
   // Responsive sizing
   @media (max-width: 480px) {
     max-width: 100%;
     min-width: 280px;
-    margin: 0 var(--md-sys-spacing-4);
+    max-height: 90vh;
   }
   
   @media (max-height: 600px) {
-    max-height: 90vh;
+    max-height: 95vh;
   }
 }
 
@@ -106,8 +121,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--md-sys-spacing-6) var(--md-sys-spacing-6) var(--md-sys-spacing-4) var(--md-sys-spacing-6);
+  padding: var(--md-sys-spacing-6);
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container);
 
   h2 {
     margin: 0;
@@ -116,19 +132,28 @@
     font-weight: var(--md-sys-typescale-headline-small-weight);
     line-height: var(--md-sys-typescale-headline-small-line-height);
     color: var(--md-sys-color-on-surface);
+    letter-spacing: var(--md-sys-typescale-headline-small-tracking);
   }
 
   .close-button {
     @include md-icon-button;
     color: var(--md-sys-color-on-surface-variant);
+    transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
 
     &:hover {
       @include md-state-layer-hover;
       color: var(--md-sys-color-on-surface);
+      transform: scale(1.05);
     }
 
     &:focus {
       @include md-state-layer-focus;
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 }
@@ -136,33 +161,70 @@
 // Modal content
 .modal-content {
   padding: var(--md-sys-spacing-6);
-  overflow: visible;
+  overflow-y: auto;
   position: relative;
+  flex: 1;
+  min-height: 0;
 
   &.disabled {
     opacity: 0.6;
     pointer-events: none;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--md-sys-color-surface-dim);
+      opacity: 0.3;
+      pointer-events: none;
+    }
   }
 }
 
 .connected-indicator {
-  background-color: var(--md-sys-color-surface-container-highest);
+  background-color: var(--md-sys-color-secondary-container);
   @include md-shape-corner-medium;
-  padding: var(--md-sys-spacing-3);
-  margin-bottom: var(--md-sys-spacing-4);
-  font-family: var(--md-sys-typescale-body-medium-font);
-  font-size: var(--md-sys-typescale-body-medium-size);
-  font-style: italic;
-  color: var(--md-sys-color-on-surface-variant);
+  padding: var(--md-sys-spacing-4);
+  margin-bottom: var(--md-sys-spacing-5);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: var(--md-sys-spacing-4);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: var(--md-sys-color-secondary);
+    border-radius: 50%;
+    margin-right: var(--md-sys-spacing-2);
+  }
+  
+  p {
+    margin: 0;
+    padding-left: var(--md-sys-spacing-4);
+    font-family: var(--md-sys-typescale-body-medium-font);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    color: var(--md-sys-color-on-secondary-container);
+  }
 }
 
 .voice-selector-container {
   display: flex;
   flex-direction: column;
-  gap: var(--md-sys-spacing-2);
+  gap: var(--md-sys-spacing-4);
   
   // Ensure dropdown doesn't get clipped
   .select-group {
+    position: relative;
     z-index: 10;
     
     .react-select {
@@ -173,10 +235,12 @@
         left: 0;
         right: 0;
         z-index: 1000;
-        max-height: 200px;
+        max-height: 240px;
         overflow-y: auto;
         @include md-shape-corner-medium;
-        @include md-elevation-2;
+        @include md-elevation-3;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        margin-top: var(--md-sys-spacing-1);
       }
       
       .react-select__menu-portal {
@@ -186,14 +250,55 @@
   }
 }
 
-// Animation keyframes
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: var(--md-sys-state-scrim-opacity);
+  }
+}
+
 @keyframes modalSlideIn {
   from {
     opacity: 0;
-    transform: scale(0.9) translateY(-20px);
+    transform: scale(0.8) translateY(-32px);
   }
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+// ============================================================================
+// RESPONSIVE DESIGN
+// ============================================================================
+
+// Reduced motion preferences
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop,
+  .modal-dialog {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  
+  .action-button,
+  .close-button {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .modal-dialog {
+    border: 2px solid var(--md-sys-color-outline);
+  }
+  
+  .connected-indicator {
+    border: 2px solid var(--md-sys-color-outline);
   }
 }

@@ -1,145 +1,378 @@
 @import '../../styles/material-design-tokens.scss';
 
+// ============================================================================
+// MATERIAL DESIGN 3 ACTION BUTTONS
+// ============================================================================
+
 .action-button {
   @include md-icon-button;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  font-size: 1.25rem;
-  line-height: 1.75rem;
+  width: var(--md-comp-icon-button-size, 48px);
+  height: var(--md-comp-icon-button-size, 48px);
+  min-width: var(--md-comp-icon-button-size, 48px);
+  min-height: var(--md-comp-icon-button-size, 48px);
+  font-size: var(--md-comp-icon-button-icon-size, 20px);
+  line-height: 1;
   user-select: none;
   cursor: pointer;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  border-radius: var(--md-comp-icon-button-shape);
   transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
-  @include md-elevation-1;
-
-  &:hover {
-    @include md-state-layer-hover;
-    @include md-elevation-2;
+  
+  // Focus ring
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    transition: all var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
   }
 
-  &:focus {
-    @include md-state-layer-focus;
-    outline: 2px solid var(--md-sys-color-primary);
-    outline-offset: 2px;
+  // State layers
+  &:hover {
+    @include md-state-layer-hover;
+    
+    &::before {
+      background: rgba(var(--md-sys-color-on-surface-variant-rgb), 0.08);
+    }
+  }
+
+  &:focus-visible {
+    &::before {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
   }
 
   &:active {
     @include md-state-layer-pressed;
+    
+    &::before {
+      background: rgba(var(--md-sys-color-on-surface-variant-rgb), 0.12);
+    }
+  }
+
+  // Button variants
+  &.filled {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
     @include md-elevation-1;
+
+    &:hover {
+      @include md-elevation-2;
+      
+      &::before {
+        background: rgba(var(--md-sys-color-on-primary-rgb), 0.08);
+      }
+    }
+
+    &:active {
+      @include md-elevation-1;
+      
+      &::before {
+        background: rgba(var(--md-sys-color-on-primary-rgb), 0.12);
+      }
+    }
+  }
+
+  &.filled-tonal {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+
+    &:hover {
+      @include md-elevation-1;
+      
+      &::before {
+        background: rgba(var(--md-sys-color-on-secondary-container-rgb), 0.08);
+      }
+    }
+
+    &:active {
+      &::before {
+        background: rgba(var(--md-sys-color-on-secondary-container-rgb), 0.12);
+      }
+    }
   }
 
   &.outlined {
-    background: var(--md-sys-color-surface-container);
+    background: transparent;
     border: 1px solid var(--md-sys-color-outline);
     color: var(--md-sys-color-on-surface-variant);
 
     &:hover {
-      background: var(--md-sys-color-surface-container-high);
+      &::before {
+        background: rgba(var(--md-sys-color-on-surface-variant-rgb), 0.08);
+      }
+    }
+
+    &:active {
+      &::before {
+        background: rgba(var(--md-sys-color-on-surface-variant-rgb), 0.12);
+      }
+    }
+
+    &:focus-visible {
+      border-color: var(--md-sys-color-primary);
     }
   }
 
-  &.no-action {
-    pointer-events: none;
-    opacity: 0.38;
-  }
-
+  // Special states
   &.connected {
     background: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-on-primary-container);
 
     &:hover {
-      background: var(--md-sys-color-primary-container);
-      @include md-state-layer-hover;
+      &::before {
+        background: rgba(var(--md-sys-color-on-primary-container-rgb), 0.08);
+      }
+    }
+
+    &:active {
+      &::before {
+        background: rgba(var(--md-sys-color-on-primary-container-rgb), 0.12);
+      }
     }
   }
 
+  &.error {
+    background: var(--md-sys-color-error);
+    color: var(--md-sys-color-on-error);
+
+    &:hover {
+      &::before {
+        background: rgba(var(--md-sys-color-on-error-rgb), 0.08);
+      }
+    }
+
+    &:active {
+      &::before {
+        background: rgba(var(--md-sys-color-on-error-rgb), 0.12);
+      }
+    }
+
+    &:focus-visible {
+      &::before {
+        outline-color: var(--md-sys-color-error);
+      }
+    }
+  }
+
+  // Disabled state
+  &:disabled,
   &.disabled {
-    @include md-state-layer-disabled;
     pointer-events: none;
+    opacity: 0.38;
+    
+    &::before {
+      display: none;
+    }
+  }
+
+  // Loading state
+  &.loading {
+    pointer-events: none;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: md-spin 1s linear infinite;
+    }
+  }
+
+  // Icon sizing
+  .icon {
+    width: var(--md-comp-icon-button-icon-size, 20px);
+    height: var(--md-comp-icon-button-icon-size, 20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
+// ============================================================================
+// MATERIAL DESIGN 3 SPECIALIZED BUTTONS
+// ============================================================================
+
+// CSS Custom Property for volume visualization
 @property --volume {
   syntax: "length";
   inherit: false;
   initial-value: 0px;
 }
 
-.disabled .mic-button,
-.mic-button.disabled {
-  &:before {
-    background: rgba(0, 0, 0, 0);
-  }
-}
-
+// Microphone button with volume visualization
 .mic-button {
   position: relative;
   background-color: var(--md-sys-color-error);
   color: var(--md-sys-color-on-error);
   z-index: 1;
+  @include md-elevation-2;
   transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
 
-  &:focus {
-    outline: 2px solid var(--md-sys-color-error);
-    outline-offset: 2px;
-  }
-
-  &:hover {
-    background-color: var(--md-sys-color-error);
-    @include md-state-layer-hover;
-  }
-
-  &:before {
+  // Volume pulse effect
+  &::after {
+    content: '';
     position: absolute;
     z-index: -1;
     top: calc(var(--volume) * -1);
     left: calc(var(--volume) * -1);
-    display: block;
-    content: "";
-    opacity: 0.35;
-    background-color: var(--md-sys-color-error);
     width: calc(100% + var(--volume) * 2);
     height: calc(100% + var(--volume) * 2);
-    @include md-shape-corner-full;
+    background-color: var(--md-sys-color-error);
+    opacity: 0.24;
+    border-radius: var(--md-sys-shape-corner-full);
     transition: all var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+    pointer-events: none;
   }
 
+  &:hover {
+    @include md-elevation-3;
+    
+    &::before {
+      background: rgba(var(--md-sys-color-on-error-rgb), 0.08);
+    }
+  }
+
+  &:active {
+    @include md-elevation-2;
+    
+    &::before {
+      background: rgba(var(--md-sys-color-on-error-rgb), 0.12);
+    }
+  }
+
+  &:focus-visible {
+    &::before {
+      outline-color: var(--md-sys-color-error);
+    }
+  }
+
+  // Recording state
+  &.recording {
+    animation: md-pulse 2s ease-in-out infinite;
+    
+    &::after {
+      animation: md-volume-pulse 1s ease-in-out infinite;
+    }
+  }
+
+  // Disabled state
+  &:disabled,
   &.disabled {
-    &:before {
-      background: transparent;
+    &::after {
+      display: none;
     }
   }
 }
 
+// Connection toggle button
 .connect-toggle {
-  &:focus {
-    outline: 2px solid var(--md-sys-color-primary);
-    outline-offset: 2px;
-  }
+  position: relative;
+  transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
 
+  // Disconnected state (primary action)
   &:not(.connected) {
     background-color: var(--md-sys-color-primary);
     color: var(--md-sys-color-on-primary);
+    @include md-elevation-1;
 
     &:hover {
-      background-color: var(--md-sys-color-primary);
-      @include md-state-layer-hover;
+      @include md-elevation-2;
+      
+      &::before {
+        background: rgba(var(--md-sys-color-on-primary-rgb), 0.08);
+      }
+    }
+
+    &:active {
+      @include md-elevation-1;
+      
+      &::before {
+        background: rgba(var(--md-sys-color-on-primary-rgb), 0.12);
+      }
+    }
+
+    &:focus-visible {
+      &::before {
+        outline-color: var(--md-sys-color-primary);
+      }
     }
   }
 
+  // Connected state (tertiary container)
   &.connected {
     background-color: var(--md-sys-color-tertiary-container);
     color: var(--md-sys-color-on-tertiary-container);
+    @include md-elevation-1;
 
     &:hover {
-      background-color: var(--md-sys-color-tertiary-container);
-      @include md-state-layer-hover;
+      @include md-elevation-2;
+      
+      &::before {
+        background: rgba(var(--md-sys-color-on-tertiary-container-rgb), 0.08);
+      }
+    }
+
+    &:active {
+      @include md-elevation-1;
+      
+      &::before {
+        background: rgba(var(--md-sys-color-on-tertiary-container-rgb), 0.12);
+      }
+    }
+
+    &:focus-visible {
+      &::before {
+        outline-color: var(--md-sys-color-tertiary);
+      }
+    }
+
+    // Connected indicator pulse
+    &::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background: var(--md-sys-color-tertiary);
+      border-radius: 50%;
+      animation: md-pulse 2s ease-in-out infinite;
+    }
+  }
+
+  // Loading state for connection
+  &.connecting {
+    pointer-events: none;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: md-spin 1s linear infinite;
     }
   }
 }
+
+// ============================================================================
+// MATERIAL DESIGN 3 CONTROL TRAY LAYOUT
+// ============================================================================
 
 .control-tray {
   position: absolute;
@@ -148,33 +381,75 @@
   transform: translate(-50%, 0);
   display: inline-flex;
   justify-content: center;
-  align-items: flex-start;
-  gap: var(--md-sys-spacing-2);
-  padding-bottom: var(--md-sys-spacing-5);
+  align-items: flex-end;
+  gap: var(--md-sys-spacing-3);
+  padding: var(--md-sys-spacing-4) var(--md-sys-spacing-6) var(--md-sys-spacing-6);
+  z-index: 10;
 
-  .disabled .action-button,
-  .action-button.disabled {
-    @include md-state-layer-disabled;
+  // Backdrop for better contrast
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% + var(--md-sys-spacing-8));
+    height: calc(100% + var(--md-sys-spacing-4));
+    background: linear-gradient(
+      to top,
+      rgba(var(--md-sys-color-surface-rgb), 0.9) 0%,
+      rgba(var(--md-sys-color-surface-rgb), 0.7) 50%,
+      transparent 100%
+    );
+    backdrop-filter: blur(8px);
+    border-radius: var(--md-sys-shape-corner-large) var(--md-sys-shape-corner-large) 0 0;
+    z-index: -1;
     pointer-events: none;
   }
 
+  // Connection container with enhanced Material Design patterns
   .connection-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: var(--md-sys-spacing-1);
+    gap: var(--md-sys-spacing-2);
+    position: relative;
 
     .connection-button-container {
-      @include md-shape-corner-full;
+      position: relative;
+      border-radius: var(--md-comp-fab-container-shape);
+      background: var(--md-sys-color-surface-container-high);
       border: 1px solid var(--md-sys-color-outline-variant);
-      background: var(--md-sys-color-surface-container);
       padding: var(--md-sys-spacing-3);
-      @include md-elevation-2;
+      @include md-elevation-3;
       transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+      overflow: hidden;
+
+      // State layer for hover
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: transparent;
+        transition: background var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+        pointer-events: none;
+      }
 
       &:hover {
+        @include md-elevation-4;
+        
+        &::before {
+          background: rgba(var(--md-sys-color-on-surface-rgb), 0.08);
+        }
+      }
+
+      &:active {
         @include md-elevation-3;
+        
+        &::before {
+          background: rgba(var(--md-sys-color-on-surface-rgb), 0.12);
+        }
       }
     }
 
@@ -185,94 +460,337 @@
       line-height: var(--md-sys-typescale-label-small-line-height);
       letter-spacing: var(--md-sys-typescale-label-small-tracking);
       color: var(--md-sys-color-primary);
+      text-align: center;
       user-select: none;
-      transition: opacity var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-emphasized);
     }
 
-    &:not(.connected) {
-      .text-indicator {
-        opacity: 0;
-      }
-    }
-
+    // Connected state styling
     &.connected {
       .connection-button-container {
         background: var(--md-sys-color-tertiary-container);
         border-color: var(--md-sys-color-tertiary);
+        
+        &::before {
+          background: rgba(var(--md-sys-color-on-tertiary-container-rgb), 0.08);
+        }
+
+        &:hover::before {
+          background: rgba(var(--md-sys-color-on-tertiary-container-rgb), 0.16);
+        }
+      }
+
+      .text-indicator {
+        opacity: 1;
+        transform: translateY(0);
+        color: var(--md-sys-color-tertiary);
+      }
+    }
+
+    // Connecting state
+    &.connecting {
+      .connection-button-container {
+        &::after {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border: 2px solid var(--md-sys-color-primary);
+          border-top-color: transparent;
+          border-radius: inherit;
+          animation: md-spin 1s linear infinite;
+        }
       }
     }
   }
 }
 
+// Material Design 3 Navigation Rail Pattern
 .actions-nav {
-  background: var(--md-sys-color-surface-container);
+  background: var(--md-sys-color-surface-container-high);
   border: 1px solid var(--md-sys-color-outline-variant);
-  @include md-shape-corner-full;
+  border-radius: var(--md-comp-navigation-rail-container-shape);
   display: inline-flex;
-  gap: var(--md-sys-spacing-3);
+  gap: var(--md-sys-spacing-2);
   align-items: center;
-  overflow: clip;
+  overflow: hidden;
   padding: var(--md-sys-spacing-3);
-  @include md-elevation-2;
+  @include md-elevation-3;
+  position: relative;
   transition: all var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
 
-  &:hover {
-    @include md-elevation-3;
-  }
-
-  &.disabled {
-    opacity: 0.38;
+  // State layer
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    transition: background var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
     pointer-events: none;
   }
 
-  &>* {
+  &:hover {
+    @include md-elevation-4;
+    
+    &::before {
+      background: rgba(var(--md-sys-color-on-surface-rgb), 0.08);
+    }
+  }
+
+  &:focus-within {
+    border-color: var(--md-sys-color-primary);
+  }
+
+  // Disabled state
+  &.disabled {
+    opacity: 0.38;
+    pointer-events: none;
+    
+    &::before {
+      display: none;
+    }
+  }
+
+  // Loading state
+  &.loading {
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--md-sys-color-primary);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: md-spin 1s linear infinite;
+    }
+  }
+
+  // Action groups within navigation
+  .action-group {
     display: flex;
     align-items: center;
-    flex-direction: column;
-    gap: var(--md-sys-spacing-4);
+    gap: var(--md-sys-spacing-1);
+    
+    &:not(:last-child) {
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        right: calc(var(--md-sys-spacing-1) * -1);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 24px;
+        background: var(--md-sys-color-outline-variant);
+      }
+    }
+  }
+
+  // Individual action items
+  .action-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
 }
 
-// Material Design pulse animation for active states
+// ============================================================================
+// MATERIAL DESIGN 3 ANIMATIONS
+// ============================================================================
+
 @keyframes md-pulse {
   0% {
-    opacity: 0.87;
-  }
-
-  50% {
+    transform: scale(1);
     opacity: 1;
   }
-
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
   100% {
-    opacity: 0.87;
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
-// Responsive design
-@media (max-width: 768px) {
+@keyframes md-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes md-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes md-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// ============================================================================
+// MATERIAL DESIGN 3 RESPONSIVE BREAKPOINTS
+// ============================================================================
+
+// Compact (Mobile)
+@include md-breakpoint-down(sm) {
   .control-tray {
-    gap: var(--md-sys-spacing-1);
-    padding-bottom: var(--md-sys-spacing-4);
+    padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4) var(--md-sys-spacing-5);
+    gap: var(--md-sys-spacing-2);
+    
+    &::before {
+      width: calc(100% + var(--md-sys-spacing-6));
+      height: calc(100% + var(--md-sys-spacing-3));
+    }
+
+    .connection-container {
+      gap: var(--md-sys-spacing-1);
+      
+      .connection-button-container {
+        padding: var(--md-sys-spacing-2);
+      }
+      
+      .text-indicator {
+        font-size: var(--md-sys-typescale-label-small-size);
+      }
+    }
   }
 
   .actions-nav {
-    gap: var(--md-sys-spacing-2);
     padding: var(--md-sys-spacing-2);
+    gap: var(--md-sys-spacing-1);
+    
+    .action-group {
+      gap: var(--md-sys-spacing-half);
+    }
   }
 
   .action-button {
     width: 44px;
     height: 44px;
-    font-size: 1.125rem;
+    min-width: 44px;
+    min-height: 44px;
+    
+    .icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+// Medium (Tablet)
+@include md-breakpoint-between(sm, md) {
+  .control-tray {
+    padding: var(--md-sys-spacing-4) var(--md-sys-spacing-5) var(--md-sys-spacing-6);
+    
+    .connection-container {
+      .text-indicator {
+        font-size: var(--md-sys-typescale-label-medium-size);
+      }
+    }
   }
 
-  .connection-container {
-    .connection-button-container {
-      padding: var(--md-sys-spacing-2);
-    }
+  .actions-nav {
+    padding: var(--md-sys-spacing-3);
+    gap: var(--md-sys-spacing-2);
+  }
+}
 
-    .text-indicator {
-      font-size: var(--md-sys-typescale-label-small-size);
+// Expanded (Desktop)
+@include md-breakpoint-up(lg) {
+  .control-tray {
+    padding: var(--md-sys-spacing-5) var(--md-sys-spacing-8) var(--md-sys-spacing-7);
+    gap: var(--md-sys-spacing-4);
+    
+    .connection-container {
+      gap: var(--md-sys-spacing-3);
+      
+      .connection-button-container {
+        padding: var(--md-sys-spacing-4);
+      }
     }
+  }
+
+  .actions-nav {
+    padding: var(--md-sys-spacing-4);
+    gap: var(--md-sys-spacing-3);
+    
+    .action-group {
+      gap: var(--md-sys-spacing-2);
+    }
+  }
+}
+
+// ============================================================================
+// ACCESSIBILITY ENHANCEMENTS
+// ============================================================================
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .control-tray {
+    .connection-button-container {
+      border-width: 2px;
+    }
+  }
+  
+  .actions-nav {
+    border-width: 2px;
+    
+    .action-group::after {
+      width: 2px;
+    }
+  }
+}
+
+// Reduced motion preferences
+@media (prefers-reduced-motion: reduce) {
+  .control-tray,
+  .actions-nav,
+  .connection-button-container,
+  .text-indicator,
+  .action-button {
+    transition: none;
+    animation: none;
+  }
+  
+  .connection-container.connecting .connection-button-container::after,
+  .actions-nav.loading::after {
+    animation: none;
+  }
+}
+
+// Focus management for keyboard navigation
+.control-tray:focus-within,
+.actions-nav:focus-within {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+// Print styles
+@media print {
+  .control-tray {
+    display: none;
   }
 }

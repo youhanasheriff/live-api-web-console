@@ -20,23 +20,38 @@ export default function SettingsDialog() {
       </button>
       {open && createPortal(
         <>
-          <div className="modal-backdrop" onClick={() => setOpen(false)} />
+          <div 
+            className="modal-backdrop" 
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
           <div className="modal-container">
-            <div className="modal-dialog">
+            <div 
+              className="modal-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="settings-dialog-title"
+              aria-describedby="settings-dialog-description"
+            >
               <div className="modal-header">
-                <h2>Voice Settings</h2>
+                <h2 id="settings-dialog-title">Voice Settings</h2>
                 <button
                   className="close-button"
                   onClick={() => setOpen(false)}
-                  aria-label="Close settings"
+                  aria-label="Close voice settings dialog"
+                  type="button"
                 >
-                  <RiCloseLine size={20} />
+                  <RiCloseLine size={20} aria-hidden="true" />
                 </button>
               </div>
               <div className={`modal-content ${connected ? "disabled" : ""}`}>
                 {connected && (
-                  <div className="connected-indicator">
-                    <p>
+                  <div 
+                    className="connected-indicator"
+                    role="alert"
+                    aria-live="polite"
+                  >
+                    <p id="settings-dialog-description">
                       These settings can only be applied before connecting and will
                       override other settings.
                     </p>

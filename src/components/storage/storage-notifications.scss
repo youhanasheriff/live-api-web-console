@@ -14,138 +14,392 @@
  * limitations under the License.
  */
 
+@import '../../styles/material-design-tokens.scss';
+
+// Material Design 3 Storage Notifications Container
 .storage-notifications-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: var(--md-sys-spacing-6);
+  right: var(--md-sys-spacing-6);
   z-index: 10000;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--md-sys-spacing-3);
   max-width: 400px;
   pointer-events: none;
   
-  @media (max-width: 480px) {
-    top: 10px;
-    right: 10px;
-    left: 10px;
+  // Responsive design for mobile devices
+  @include md-breakpoint-down(sm) {
+    top: var(--md-sys-spacing-4);
+    right: var(--md-sys-spacing-4);
+    left: var(--md-sys-spacing-4);
     max-width: none;
+  }
+  
+  // Ensure notifications don't interfere with other UI elements
+  @include md-breakpoint-between(sm, md) {
+    max-width: 320px;
   }
 }
 
+// Material Design 3 Storage Notification Card
 .storage-notification {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--md-sys-color-surface-container-high);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  @include md-elevation-2;
   overflow: hidden;
   pointer-events: auto;
   position: relative;
-  animation: slideInRight 0.3s ease-out;
-  transition: all 0.3s ease;
+  animation: md-notification-slide-in var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized-decelerate);
+  transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
   
+  // Hover state with enhanced elevation
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    @include md-elevation-3;
+    border-color: var(--md-sys-color-outline);
   }
   
-  // Notification types
+  // State layer for interactive feedback
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--md-sys-color-on-surface);
+    opacity: 0;
+    transition: opacity var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+    pointer-events: none;
+  }
+  
+  &:hover::before {
+    opacity: var(--md-sys-state-hover-state-layer-opacity);
+  }
+  
+  // Notification type variants
   &--warning {
-    border-left: 4px solid var(--warning-color);
+    border-left: 4px solid var(--md-sys-color-tertiary);
+    background: var(--md-sys-color-tertiary-container);
     
     .notification-icon {
-      color: var(--warning-color);
+      color: var(--md-sys-color-tertiary);
+    }
+    
+    .notification-title {
+      color: var(--md-sys-color-on-tertiary-container);
     }
   }
   
   &--cleanup {
-    border-left: 4px solid var(--info-color);
+    border-left: 4px solid var(--md-sys-color-secondary);
+    background: var(--md-sys-color-secondary-container);
     
     .notification-icon {
-      color: var(--info-color);
+      color: var(--md-sys-color-secondary);
+    }
+    
+    .notification-title {
+      color: var(--md-sys-color-on-secondary-container);
     }
   }
   
   &--error {
-    border-left: 4px solid var(--error-color);
+    border-left: 4px solid var(--md-sys-color-error);
+    background: var(--md-sys-color-error-container);
     
     .notification-icon {
-      color: var(--error-color);
+      color: var(--md-sys-color-error);
+    }
+    
+    .notification-title {
+      color: var(--md-sys-color-on-error-container);
+    }
+  }
+  
+  // Success variant (if needed)
+  &--success {
+    border-left: 4px solid var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary-container);
+    
+    .notification-icon {
+      color: var(--md-sys-color-primary);
+    }
+    
+    .notification-title {
+      color: var(--md-sys-color-on-primary-container);
+    }
+   }
+ }
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+  .storage-notification {
+    animation: none;
+    transition: none;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  @keyframes md-notification-slide-in {
+    from, to {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes md-notification-slide-out {
+    from, to {
+      transform: translateX(0) scale(1);
+      opacity: 0;
     }
   }
 }
 
-@keyframes slideInRight {
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .storage-notification {
+    border-width: 2px;
+    
+    &--warning {
+      border-left-width: 6px;
+    }
+    
+    &--cleanup {
+      border-left-width: 6px;
+    }
+    
+    &--error {
+      border-left-width: 6px;
+    }
+    
+    &--success {
+      border-left-width: 6px;
+    }
+  }
+  
+  .notification-action {
+    border: 1px solid currentColor;
+  }
+  
+  .notification-close {
+    border: 1px solid currentColor;
+  }
+}
+
+// Dark theme adjustments
+@media (prefers-color-scheme: dark) {
+  .storage-notification {
+    @include md-elevation-3;
+    
+    &:hover {
+      @include md-elevation-4;
+    }
+  }
+}
+
+// Print styles
+@media print {
+  .storage-notifications-container {
+    display: none;
+  }
+}
+
+// Material Design 3 Notification Animations
+@keyframes md-notification-slide-in {
   from {
-    transform: translateX(100%);
+    transform: translateX(100%) scale(0.95);
     opacity: 0;
   }
   to {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
     opacity: 1;
   }
 }
 
-.notification-content {
-  padding: 16px;
+@keyframes md-notification-slide-out {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
 }
 
+// Notification content container
+.notification-content {
+  padding: var(--md-sys-spacing-4);
+  position: relative;
+  z-index: 1;
+}
+
+// Notification header with icon and title
 .notification-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-2);
   
   .notification-icon {
-    font-size: 16px;
+    font-size: var(--md-sys-typescale-title-medium-size);
     flex-shrink: 0;
+    line-height: 1;
+    
+    // Ensure proper alignment
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
   }
   
   .notification-title {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-primary);
+    font-family: var(--md-sys-typescale-title-medium-font);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+    color: var(--md-sys-color-on-surface);
+    margin: 0;
     flex: 1;
   }
   
   .notification-dismiss {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+    padding: var(--md-sys-spacing-2);
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
     flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    
+    // State layer
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: currentColor;
+      opacity: 0;
+      transition: opacity var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+    }
     
     &:hover {
-      background: var(--background-secondary);
-      color: var(--text-primary);
+      color: var(--md-sys-color-on-surface);
+      
+      &::before {
+        opacity: var(--md-sys-state-hover-state-layer-opacity);
+      }
     }
     
     &:focus {
       outline: none;
-      background: var(--background-secondary);
-      box-shadow: 0 0 0 2px var(--accent-color);
+    }
+    
+    &:focus-visible {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
+    
+    &:active::before {
+      opacity: var(--md-sys-state-pressed-state-layer-opacity);
     }
   }
 }
 
 .notification-message {
-  font-size: 13px;
-  color: var(--text-primary);
-  line-height: 1.4;
-  margin-bottom: 8px;
+  font-family: var(--md-sys-typescale-body-medium-font);
+  font-size: var(--md-sys-typescale-body-medium-size);
+  font-weight: var(--md-sys-typescale-body-medium-weight);
+  line-height: var(--md-sys-typescale-body-medium-line-height);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+  color: var(--md-sys-color-on-surface-variant);
+  margin: 0;
 }
 
+// Action buttons container
+.notification-actions {
+  display: flex;
+  gap: var(--md-sys-spacing-2);
+  margin-top: var(--md-sys-spacing-3);
+  justify-content: flex-end;
+  align-items: center;
+}
+
+// Material Design 3 text button for actions
 .notification-action {
-  margin-bottom: 8px;
+  background: none;
+  border: none;
+  color: var(--md-sys-color-primary);
+  font-family: var(--md-sys-typescale-label-large-font);
+  font-size: var(--md-sys-typescale-label-large-size);
+  font-weight: var(--md-sys-typescale-label-large-weight);
+  line-height: var(--md-sys-typescale-label-large-line-height);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  // State layer
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity var(--md-sys-motion-duration-short1) var(--md-sys-motion-easing-standard);
+  }
+  
+  &:hover::before {
+    opacity: var(--md-sys-state-hover-state-layer-opacity);
+  }
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+  }
+  
+  &:active::before {
+    opacity: var(--md-sys-state-pressed-state-layer-opacity);
+  }
+  
+  // Disabled state
+  &:disabled {
+    color: var(--md-sys-color-on-surface);
+    opacity: 0.38;
+    cursor: not-allowed;
+    
+    &::before {
+      display: none;
+    }
+  }
   
   .action-text {
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--md-sys-color-on-surface-variant);
     font-style: italic;
     
     &::before {
@@ -157,7 +411,7 @@
 
 .notification-timestamp {
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
   text-align: right;
 }
 
@@ -166,7 +420,7 @@
   bottom: 0;
   left: 0;
   height: 2px;
-  background: var(--accent-color);
+  background: var(--md-sys-color-primary);
   animation: progressBar 5s linear;
   
   .storage-notification--error & {
@@ -186,10 +440,10 @@
 // Dark mode adjustments
 @media (prefers-color-scheme: dark) {
   .storage-notification {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    @include md-elevation-2;
     
     &:hover {
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      @include md-elevation-3;
     }
   }
 }

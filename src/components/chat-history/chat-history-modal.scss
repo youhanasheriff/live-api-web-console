@@ -26,7 +26,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--md-sys-z-index-modal);
   padding: var(--md-sys-spacing-6);
   backdrop-filter: blur(2px);
   animation: backdropFadeIn var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
@@ -250,17 +250,17 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: var(--md-spacing-xl);
-  color: var(--md-text-medium-emphasis);
+  padding: var(--md-sys-spacing-8);
+  color: var(--md-sys-color-on-surface-variant);
   font-size: 14px;
   font-weight: 400;
-  gap: var(--md-spacing-lg);
+  gap: var(--md-sys-spacing-5);
 
   .loading-spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid var(--md-border-color);
-    border-top: 3px solid var(--md-primary);
+    border: 3px solid var(--md-sys-color-outline-variant);
+    border-top: 3px solid var(--md-sys-color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -287,21 +287,21 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: var(--md-spacing-lg);
-  color: var(--md-text-medium-emphasis);
+  gap: var(--md-sys-spacing-5);
+  color: var(--md-sys-color-on-surface-variant);
   text-align: center;
-  padding: var(--md-spacing-xl);
+  padding: var(--md-sys-spacing-8);
 
   svg {
     opacity: 0.6;
-    color: var(--md-text-disabled);
+    color: var(--md-sys-color-outline);
   }
 
   h3 {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 500;
-    color: var(--md-text-high-emphasis);
+    color: var(--md-sys-color-on-surface);
     line-height: 1.4;
   }
 

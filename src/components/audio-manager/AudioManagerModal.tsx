@@ -46,6 +46,8 @@ interface AudioListItemProps {
   onClick: () => void;
   currentTime?: number;
   duration?: number;
+  index?: number;
+  totalItems?: number;
 }
 
 const AudioListItem: React.FC<AudioListItemProps> = ({
@@ -59,6 +61,8 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
   onClick,
   currentTime = 0,
   duration = 0,
+  index = 1,
+  totalItems = 1,
 }) => {
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -83,8 +87,19 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
 
   return (
     <div
-      className={`audio-list-item ${isSelected ? 'selected' : ''}`}
+      className={`audio-list-item ${isSelected ? 'selected' : ''} ${isPlaying ? 'playing' : ''}`}
       onClick={onClick}
+      role="listitem"
+      tabIndex={0}
+      aria-label={`Recording ${audio.sessionId.slice(-8)}, ${formatDate(audio.startTime)}, ${formatDuration(audio.duration / 1000)}, ${formatFileSize(audio.size)}`}
+      aria-posinset={index}
+      aria-setsize={totalItems}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="audio-info">
         <div className="audio-header">
@@ -113,29 +128,37 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
 
         {isPlaying && duration > 0 && (
           <div className="playback-progress">
-            <div className="progress-bar">
+            <div 
+              className="progress-bar"
+              role="progressbar"
+              aria-valuenow={Math.round((currentTime / duration) * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Playback progress: ${Math.round((currentTime / duration) * 100)}%`}
+            >
               <div 
                 className="progress-fill" 
                 style={{ width: `${(currentTime / duration) * 100}%` }}
               />
             </div>
-            <span className="time-display">
+            <span className="time-display" aria-live="polite">
               {formatDuration(currentTime)} / {formatDuration(duration)}
             </span>
           </div>
         )}
       </div>
 
-      <div className="audio-actions">
+      <div className="audio-actions" role="group" aria-label="Audio recording actions">
         <button
-          className="action-btn play-btn"
+          className={`action-btn play-btn ${isPlaying ? 'playing' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
             isPlaying ? onPause() : onPlay();
           }}
-          title={isPlaying ? 'Pause' : 'Play'}
+          aria-label={`${isPlaying ? 'Pause' : 'Play'} recording ${audio.sessionId.slice(-8)}`}
+          type="button"
         >
-          {isPlaying ? <RiPauseLine /> : <RiPlayLine />}
+          {isPlaying ? <RiPauseLine aria-hidden="true" /> : <RiPlayLine aria-hidden="true" />}
         </button>
         
         <button
@@ -144,9 +167,10 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
             e.stopPropagation();
             onDownload();
           }}
-          title="Download"
+          aria-label={`Download recording ${audio.sessionId.slice(-8)}`}
+          type="button"
         >
-          <RiDownloadLine />
+          <RiDownloadLine aria-hidden="true" />
         </button>
         
         <button
@@ -155,9 +179,10 @@ const AudioListItem: React.FC<AudioListItemProps> = ({
             e.stopPropagation();
             onDelete();
           }}
-          title="Delete"
+          aria-label={`Delete recording ${audio.sessionId.slice(-8)}`}
+          type="button"
         >
-          <RiDeleteBinLine />
+          <RiDeleteBinLine aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -173,33 +198,42 @@ const StorageStatsDisplay: React.FC<{ stats: AudioStorageStats }> = ({ stats }) 
   const usagePercentage = (stats.totalSize / (100 * 1024 * 1024)) * 100; // Assuming 100MB limit
 
   return (
-    <div className="storage-stats">
+    <section className="storage-stats" aria-labelledby="storage-heading">
       <div className="stats-header">
-        <h3>Storage Usage</h3>
+        <h3 id="storage-heading">Storage Usage</h3>
       </div>
       <div className="stats-content">
         <div className="stat-item">
           <span className="stat-label">Total Recordings:</span>
-          <span className="stat-value">{stats.totalSessions}</span>
+          <span className="stat-value" aria-label={`${stats.totalSessions} recordings`}>{stats.totalSessions}</span>
         </div>
         <div className="stat-item">
           <span className="stat-label">Storage Used:</span>
-          <span className="stat-value">{formatSize(stats.totalSize)}</span>
+          <span className="stat-value" aria-label={`${formatSize(stats.totalSize)} used`}>{formatSize(stats.totalSize)}</span>
         </div>
-        <div className="usage-bar">
+        <div 
+          className="usage-bar"
+          role="progressbar"
+          aria-valuenow={Math.round(usagePercentage)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Storage usage: ${Math.round(usagePercentage)}% of 100 MB limit`}
+          aria-describedby={stats.isNearLimit ? "storage-warning" : undefined}
+        >
           <div 
             className={`usage-fill ${stats.isNearLimit ? 'near-limit' : ''}`}
             style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+            aria-hidden="true"
           />
         </div>
         {stats.isNearLimit && (
-          <div className="warning-message">
+          <div className="warning-message" id="storage-warning" role="alert" aria-live="polite">
             Storage is nearly full. Consider deleting old recordings.
           </div>
         )}
       </div>
-    </div>
-  );
+      </section>
+    );
 };
 
 export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
@@ -219,6 +253,8 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
   const [duration, setDuration] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const firstFocusableRef = useRef<HTMLButtonElement | null>(null);
 
   // Load audio sessions
   const loadAudioSessions = useCallback(async () => {
@@ -264,8 +300,50 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
   useEffect(() => {
     if (open) {
       loadAudioSessions();
+      // Focus management
+      setTimeout(() => {
+        firstFocusableRef.current?.focus();
+      }, 100);
     }
   }, [open, loadAudioSessions]);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && open) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [open, onClose]);
+
+  // Focus trap
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && modalRef.current) {
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, input, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement?.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement?.focus();
+      }
+    }
+  };
 
   // Audio playback handlers
   const handlePlay = useCallback(async (sessionId: string) => {
@@ -400,12 +478,28 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
   if (!open) return null;
 
   return createPortal(
-    <div className="audio-manager-modal-overlay">
-      <div className="audio-manager-modal">
+    <div 
+      className="audio-manager-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="audio-modal-title"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div 
+        className="audio-manager-modal"
+        ref={modalRef}
+        onKeyDown={handleKeyDown}
+      >
         <div className="modal-header">
-          <h2>Audio Recordings</h2>
-          <button className="close-btn" onClick={onClose}>
-            <RiCloseLine />
+          <h2 id="audio-modal-title">Audio Recordings</h2>
+          <button 
+            ref={firstFocusableRef}
+            className="close-btn" 
+            onClick={onClose}
+            aria-label="Close audio recordings dialog"
+            type="button"
+          >
+            <RiCloseLine aria-hidden="true" />
           </button>
         </div>
 
@@ -414,43 +508,66 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
           
           <div className="search-section">
             <div className="search-input-container">
-              <RiSearchLine className="search-icon" />
+              <RiSearchLine className="search-icon" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Search recordings..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
+                aria-label="Search audio recordings"
+                aria-describedby="search-help"
               />
+              <div id="search-help" className="sr-only">
+                Type to filter recordings by session ID or date
+              </div>
             </div>
             
             {audioSessions.length > 0 && (
               <button
                 className="clear-all-btn"
                 onClick={handleClearAll}
-                title="Delete all recordings"
+                aria-label="Delete all audio recordings"
+                type="button"
               >
-                <RiDeleteBin2Line /> Clear All
+                <RiDeleteBin2Line aria-hidden="true" /> Clear All
               </button>
             )}
           </div>
 
           {error && (
-            <div className="error-message">
+            <div className="error-message" role="alert" aria-live="polite">
               {error}
-              <button onClick={() => setError(null)}>×</button>
+              <button 
+                onClick={() => setError(null)}
+                aria-label="Dismiss error message"
+                type="button"
+              >
+                ×
+              </button>
             </div>
           )}
 
-          <div className="audio-list">
+          <div 
+            className="audio-list"
+            role="list"
+            aria-label="Audio recordings list"
+            aria-live="polite"
+            aria-describedby="list-status"
+          >
+            <div id="list-status" className="sr-only">
+              {isLoading ? 'Loading recordings' : 
+               filteredSessions.length === 0 ? 'No recordings available' :
+               `${filteredSessions.length} recording${filteredSessions.length === 1 ? '' : 's'} found`}
+            </div>
             {isLoading ? (
-              <div className="loading-message">Loading audio recordings...</div>
+              <div className="loading-message" aria-live="polite">Loading audio recordings...</div>
             ) : filteredSessions.length === 0 ? (
-              <div className="empty-message">
+              <div className="empty-message" role="status">
                 {searchTerm ? 'No recordings match your search.' : 'No audio recordings found. Start a conversation and enable recording to see your audio here.'}
               </div>
             ) : (
-              filteredSessions.map((audio) => (
+              filteredSessions.map((audio, index) => (
                 <AudioListItem
                   key={audio.sessionId}
                   audio={audio}
@@ -463,6 +580,8 @@ export const AudioManagerModal: React.FC<AudioManagerModalProps> = ({
                   onClick={() => setSelectedSessionId(audio.sessionId)}
                   currentTime={playingSessionId === audio.sessionId ? currentTime : 0}
                   duration={playingSessionId === audio.sessionId ? duration : 0}
+                  index={index + 1}
+                  totalItems={filteredSessions.length}
                 />
               ))
             )}

@@ -17,7 +17,7 @@
   line-height: var(--md-sys-typescale-body-medium-line-height);
   letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   @include md-elevation-1;
-  z-index: 10;
+  z-index: var(--md-sys-z-index-fixed);
 
   .hidden {
     display: none !important;
@@ -54,15 +54,22 @@
         color: var(--md-sys-color-on-surface-variant);
         width: 40px;
         height: 40px;
+        transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
         
         &:hover {
           color: var(--md-sys-color-on-surface);
           background: var(--md-sys-color-surface-container-highest);
+          @include md-state-layer-hover;
         }
         
-        &:focus {
+        &:focus-visible {
           outline: 2px solid var(--md-sys-color-primary);
           outline-offset: 2px;
+          @include md-state-layer-focus;
+        }
+        
+        &:active {
+          @include md-state-layer-pressed;
         }
       }
       
@@ -71,10 +78,22 @@
         color: var(--md-sys-color-on-surface-variant);
         width: 40px;
         height: 40px;
+        transition: all var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
         
         &:hover {
           color: var(--md-sys-color-on-surface);
           background: var(--md-sys-color-surface-container-highest);
+          @include md-state-layer-hover;
+        }
+        
+        &:focus-visible {
+          outline: 2px solid var(--md-sys-color-primary);
+          outline-offset: 2px;
+          @include md-state-layer-focus;
+        }
+        
+        &:active {
+          @include md-state-layer-pressed;
         }
       }
     }
@@ -108,7 +127,13 @@
 
   .opener {
     height: 40px;
-    transition: transform var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+    transition: transform var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard),
+                background-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+    
+    &:focus-visible {
+      outline: 2px solid var(--md-sys-color-primary);
+      outline-offset: 2px;
+    }
   }
 
   &:not(.open) {
@@ -199,6 +224,10 @@
         background: var(--md-sys-color-outline);
       }
     }
+    
+    // Firefox scrollbar styling
+    scrollbar-width: thin;
+    scrollbar-color: var(--md-sys-color-outline-variant) var(--md-sys-color-surface-container-low);
   }
 
   .input-container {
@@ -237,15 +266,26 @@
         font-size: 18px;
         z-index: 2;
         
-        &:hover {
+        &:hover:not(:disabled) {
           background: var(--md-sys-color-primary);
           @include md-elevation-1;
+          @include md-state-layer-hover;
+        }
+        
+        &:focus-visible {
+          outline: 2px solid var(--md-sys-color-on-primary);
+          outline-offset: 2px;
+        }
+        
+        &:active:not(:disabled) {
+          @include md-state-layer-pressed;
         }
         
         &:disabled {
           background: var(--md-sys-color-surface-variant);
           color: var(--md-sys-color-on-surface-variant);
           opacity: 0.38;
+          cursor: not-allowed;
         }
       }
 
@@ -314,6 +354,25 @@
     opacity: 1;
     display: block;
   }
+  
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--md-sys-z-index-overlay);
+  }
+  
+  @media (max-width: 480px) {
+    .side-panel-container {
+      width: 100%;
+    }
+    
+    .input-container {
+      padding: var(--md-sys-spacing-3);
+    }
+  }
 }
 
 .side-panel-responses,
@@ -343,4 +402,46 @@
   @include md-icon-button;
   font-size: 1.25rem;
   line-height: 1.75rem;
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+  .side-panel,
+  .side-panel *,
+  .side-panel::before,
+  .side-panel::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .side-panel {
+    border-right-width: 2px;
+    
+    .streaming-indicator {
+      border-width: 2px;
+    }
+    
+    .input-content {
+      border-width: 2px;
+    }
+  }
+}
+
+// Focus management
+.side-panel:focus-within {
+  .top .header-actions {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+    border-radius: var(--md-sys-shape-corner-small);
+  }
+}
+
+// Print styles
+@media print {
+  .side-panel {
+    display: none;
+  }
 }

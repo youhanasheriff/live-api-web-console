@@ -1,34 +1,78 @@
+@import '../../styles/material-design-tokens.scss';
+
 .react-select {
-  background: var(--Neutral-20);
-  color: var(--Neutral-90);
   width: 193px;
   height: 30px;
 
+  // Control (input) container
+  .react-select__control {
+    background: var(--md-sys-color-surface-container-highest);
+    color: var(--md-sys-color-on-surface);
+    border: 1px solid var(--md-sys-color-outline);
+    min-height: 30px;
+    height: 30px;
+    @include md-shape-corner-small;
+    transition: border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
+                box-shadow var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+    @include md-elevation-0;
+
+    &:hover {
+      border-color: var(--md-sys-color-on-surface-variant);
+      @include md-elevation-1;
+    }
+
+    &.react-select__control--is-focused {
+      border-color: var(--md-sys-color-primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
+    }
+  }
+
   .react-select__single-value {
-    color: var(--Neutral-90);
+    color: var(--md-sys-color-on-surface);
   }
 
-  .react-select__menu {
-    background: var(--Neutral-20);
-    color: var(--Neutral-90);
-  }
-
-  .react-select__option {
+  .react-select__placeholder {
+    color: var(--md-sys-color-on-surface-variant);
   }
 
   .react-select__value-container {
+    padding: 0 8px;
+    gap: 8px;
   }
 
   .react-select__indicators {
+    color: var(--md-sys-color-on-surface-variant);
+
+    .react-select__indicator {
+      padding: 6px;
+    }
   }
 
-  .react-select__option:hover,
-  .react-select__option:focus,
-  .react-select_option:focus-within {
-    background: var(--Neutral-30);
+  // Dropdown menu
+  .react-select__menu {
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    margin-top: 8px;
+    @include md-shape-corner-medium;
+    @include md-elevation-2;
   }
 
-  .react-select__option--is-focused: {
-    background: var(--Neutral-30);
+  .react-select__menu-list {
+    padding: 8px 0;
+  }
+
+  .react-select__option {
+    @extend .md-typescale-body-medium;
+    color: var(--md-sys-color-on-surface);
+    padding: 8px 12px;
+    @include md-shape-corner-small;
+
+    &:hover,
+    &.react-select__option--is-focused,
+    &.react-select__option--is-selected {
+      background: var(--md-sys-color-secondary-container);
+      color: var(--md-sys-color-on-secondary-container);
+    }
   }
 }

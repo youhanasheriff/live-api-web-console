@@ -90,8 +90,8 @@ const SessionListItem: React.FC<SessionListItemProps> = ({
     <div
       className={`session-item ${isSelected ? 'selected' : ''}`}
       onClick={onClick}
-      role="listitem"
-      aria-selected={isSelected}
+      role="button"
+      aria-pressed={isSelected}
       tabIndex={0}
       onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -99,6 +99,7 @@ const SessionListItem: React.FC<SessionListItemProps> = ({
           onClick();
         }
       }}
+      aria-label={`Session: ${session.title}, ${formatDate(session.startTime)}, ${formatDuration(session.duration)}, ${session.metadata.messageCount} messages`}
     >
       <div className="session-header">
         <div className="session-title">{session.title}</div>
@@ -110,9 +111,10 @@ const SessionListItem: React.FC<SessionListItemProps> = ({
               onPlay();
             }}
             title="Replay session"
-            aria-label="Replay session"
+            aria-label={`Replay session: ${session.title}`}
+            type="button"
           >
-            <RiPlayLine size={16} />
+            <RiPlayLine size={16} aria-hidden="true" />
           </button>
           <button
             className="action-button delete-button"
@@ -121,9 +123,10 @@ const SessionListItem: React.FC<SessionListItemProps> = ({
               onDelete();
             }}
             title="Delete session"
-            aria-label="Delete session"
+            aria-label={`Delete session: ${session.title}`}
+            type="button"
           >
-            <RiDeleteBinLine size={16} />
+            <RiDeleteBinLine size={16} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -336,7 +339,7 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
   if (!open) return null;
 
   return createPortal(
-    <div className="chat-history-backdrop" onClick={onClose}>
+    <div className="chat-history-backdrop" onClick={onClose} aria-hidden="true">
       <div
         className="chat-history-modal"
         onClick={e => e.stopPropagation()}
@@ -359,9 +362,10 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
             <button
               className="action-button"
               onClick={onClose}
-              aria-label="Close dialog"
+              aria-label="Close chat history dialog"
+              type="button"
             >
-              <RiCloseLine size={16} color="#fff" />
+              <RiCloseLine size={16} color="#fff" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -429,7 +433,7 @@ export const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({
               {/* Session List */}
               <div
                 className="sessions-list"
-                role="list"
+                role="region"
                 aria-label="Saved sessions"
               >
                 {filteredSessions.map(session => (
