@@ -262,10 +262,10 @@ export function HybridPipelineProvider({
           throw new Error('Conversation API failed');
         }
 
-        const { response, toolCalls } = await conversationResponse.json();
+        const { response, shouldEndCall } = await conversationResponse.json();
 
         // Check for endCallTool
-        if (toolCalls?.some((call: any) => call.name === 'endCallTool')) {
+        if (shouldEndCall) {
           disconnect();
           return;
         }
@@ -294,245 +294,57 @@ export function HybridPipelineProvider({
     [state.chatHistory]
   );
 
-  // Frontend logger utility
-  const logger = {
-    debug: (message: string, data?: any) => {
-      console.log(
-        `[${new Date().toISOString()}] [DEBUG] [TTS-Frontend] ${message}`,
-        data || ''
-      );
-    },
-    info: (message: string, data?: any) => {
-      console.log(
-        `[${new Date().toISOString()}] [INFO] [TTS-Frontend] ${message}`,
-        data || ''
-      );
-    },
-    warning: (message: string, data?: any) => {
-      console.warn(
-        `[${new Date().toISOString()}] [WARNING] [TTS-Frontend] ${message}`,
-        data || ''
-      );
-    },
-    error: (message: string, error?: any) => {
-      console.error(
-        `[${new Date().toISOString()}] [ERROR] [TTS-Frontend] ${message}`,
-        error || ''
-      );
-    },
-  };
+
 
   // Process text to speech
   const processTextToSpeech = useCallback(
     async (text: string, voice: string = 'nova') => {
-      const requestId = `tts_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-      const startTime = Date.now();
-
-      logger.info('TTS processing initiated', {
-        requestId,
-        textLength: text.length,
-        voice,
-        timestamp: startTime,
-      });
-
       try {
         // Input validation
-        if (!text || typeof text !== 'string') {
-          logger.warning('Invalid text input for TTS', {
-            requestId,
-            textType: typeof text,
-            textLength: text?.length || 0,
-            hasText: !!text,
-          });
+        if (!text || typeof text !== 'string' || text.trim().length === 0) {
           throw new Error('Invalid text input');
         }
 
-        if (text.trim().length === 0) {
-          logger.warning('Empty text provided for TTS', { requestId });
-          throw new Error('Text cannot be empty');
-        }
-
         if (text.length > 4096) {
-          logger.warning('Text exceeds maximum length for TTS', {
-            requestId,
-            textLength: text.length,
-            maxLength: 4096,
-          });
           throw new Error('Text too long for TTS processing');
         }
 
-        const validVoices = [
-          'alloy',
-          'echo',
-          'fable',
-          'onyx',
-          'nova',
-          'shimmer',
-        ];
+        const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
         if (!validVoices.includes(voice)) {
-          logger.warning('Invalid voice selection', {
-            requestId,
-            voice,
-            validVoices,
-          });
           voice = 'nova'; // Fallback to default
         }
 
-        logger.debug('TTS input validation passed', {
-          requestId,
-          validatedText:
-            text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-          voice,
-        });
-
         // API request
-        logger.debug('Sending TTS API request', {
-          requestId,
-          endpoint: '/api/tts',
-          method: 'POST',
-          payload: { textLength: text.length, voice },
-        });
-
-        const apiStartTime = Date.now();
         const ttsResponse = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, voice }),
         });
 
-        const apiEndTime = Date.now();
-        logger.info('TTS API response received', {
-          requestId,
-          status: ttsResponse.status,
-          statusText: ttsResponse.statusText,
-          apiResponseTime: apiEndTime - apiStartTime,
-          headers: {
-            contentType: ttsResponse.headers.get('content-type'),
-            contentLength: ttsResponse.headers.get('content-length'),
-          },
-        });
-
         if (!ttsResponse.ok) {
-          const errorData = await ttsResponse.json().catch(() => ({}));
-          logger.error('TTS API request failed', {
-            requestId,
-            status: ttsResponse.status,
-            statusText: ttsResponse.statusText,
-            errorData,
-            apiResponseTime: apiEndTime - apiStartTime,
-          });
-          throw new Error(
-            `TTS API failed: ${ttsResponse.status} ${ttsResponse.statusText}`
-          );
+          throw new Error(`TTS API failed: ${ttsResponse.status}`);
         }
 
-        const responseData = await ttsResponse.json();
-        logger.debug('TTS API response parsed', {
-          requestId,
-          hasAudio: !!responseData.audio,
-          audioLength: responseData.audio?.length || 0,
-          format: responseData.format,
-          processingTime: responseData.processingTime,
-        });
-
-        const { audio } = responseData;
+        const { audio } = await ttsResponse.json();
 
         if (!audio) {
-          logger.error('No audio data in TTS response', {
-            requestId,
-            responseData: Object.keys(responseData),
-          });
           throw new Error('No audio data received from TTS API');
         }
 
         // PCM Audio processing
-        logger.debug('Processing PCM audio data for playback', {
-          requestId,
-          base64Length: audio.length,
-        });
-
-        let audioData: Uint8Array;
-        try {
-          audioData = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
-          logger.debug('PCM audio data decoded successfully', {
-            requestId,
-            decodedSize: audioData.length,
-            originalBase64Size: audio.length,
-          });
-        } catch (decodeError) {
-          logger.error('Failed to decode base64 PCM audio data', {
-            requestId,
-            error: decodeError,
-            base64Length: audio.length,
-          });
-          throw new Error('Failed to decode PCM audio data');
-        }
-
-        // PCM Audio playback setup
-        logger.info('Starting PCM audio playback', {
-          requestId,
-          audioDataSize: audioData.length,
-        });
+        const audioData = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
 
         dispatch({ type: 'SET_PLAYING_AUDIO', payload: true });
 
         // Set up completion handler
         audioStreamerRef.current!.onComplete = () => {
-          const playbackEndTime = Date.now();
-          logger.info('PCM audio playback completed', {
-            requestId,
-            totalProcessingTime: playbackEndTime - startTime,
-            playbackDuration: playbackEndTime - (apiEndTime || startTime),
-          });
           dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
         };
 
         // Resume audio context and add PCM16 data directly
-        try {
-          await audioStreamerRef.current!.resume();
-          logger.debug('Audio context resumed for PCM playback', { requestId });
-
-          audioStreamerRef.current!.addPCM16(audioData);
-          logger.debug('PCM16 audio data added to streamer', {
-            requestId,
-            dataSize: audioData.length,
-          });
-        } catch (playbackError) {
-          logger.error('PCM audio playback failed', {
-            requestId,
-            error: playbackError,
-          });
-          dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
-          throw new Error('Failed to play PCM audio');
-        }
-
-        const totalTime = Date.now() - startTime;
-        logger.info('TTS processing completed successfully', {
-          requestId,
-          totalProcessingTime: totalTime,
-          textLength: text.length,
-          voice,
-        });
+        await audioStreamerRef.current!.resume();
+        audioStreamerRef.current!.addPCM16(audioData);
       } catch (error) {
-        const totalTime = Date.now() - startTime;
-
-        logger.error('TTS processing failed', {
-          requestId,
-          error:
-            error instanceof Error
-              ? {
-                  name: error.name,
-                  message: error.message,
-                  stack: error.stack,
-                }
-              : error,
-          totalProcessingTime: totalTime,
-          textLength: text.length,
-          voice,
-        });
-
         // Determine user-friendly error message
         let userErrorMessage = 'Failed to generate speech';
         if (error instanceof Error) {
@@ -541,23 +353,12 @@ export function HybridPipelineProvider({
           } else if (error.message.includes('too long')) {
             userErrorMessage = 'Text is too long for speech generation';
           } else if (error.message.includes('API failed')) {
-            userErrorMessage =
-              'Speech generation service is currently unavailable';
-          } else if (error.message.includes('decode')) {
-            userErrorMessage = 'Audio processing failed';
-          } else if (error.message.includes('play')) {
-            userErrorMessage = 'Audio playback failed';
+            userErrorMessage = 'Speech generation service is currently unavailable';
           }
         }
 
         dispatch({ type: 'SET_ERROR', payload: userErrorMessage });
         dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
-
-        logger.error('Error state updated', {
-          requestId,
-          userErrorMessage,
-          playbackStopped: true,
-        });
       }
     },
     []
