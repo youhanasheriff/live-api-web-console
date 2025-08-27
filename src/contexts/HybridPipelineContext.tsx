@@ -266,8 +266,9 @@ export function HybridPipelineProvider({
 
         // Check for endCallTool
         if (shouldEndCall) {
-          disconnect();
-          return;
+          // disconnect();
+          console.log('end the call. this is the text response:', response);
+          // return;
         }
 
         if (response.trim()) {
@@ -294,75 +295,66 @@ export function HybridPipelineProvider({
     [state.chatHistory]
   );
 
-
-
   // Process text to speech
-  const processTextToSpeech = useCallback(
-    async (text: string, voice: string = 'nova') => {
-      try {
-        // Input validation
-        if (!text || typeof text !== 'string' || text.trim().length === 0) {
-          throw new Error('Invalid text input');
-        }
-
-        if (text.length > 4096) {
-          throw new Error('Text too long for TTS processing');
-        }
-
-        const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
-        if (!validVoices.includes(voice)) {
-          voice = 'nova'; // Fallback to default
-        }
-
-        // API request
-        const ttsResponse = await fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, voice }),
-        });
-
-        if (!ttsResponse.ok) {
-          throw new Error(`TTS API failed: ${ttsResponse.status}`);
-        }
-
-        const { audio } = await ttsResponse.json();
-
-        if (!audio) {
-          throw new Error('No audio data received from TTS API');
-        }
-
-        // PCM Audio processing
-        const audioData = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
-
-        dispatch({ type: 'SET_PLAYING_AUDIO', payload: true });
-
-        // Set up completion handler
-        audioStreamerRef.current!.onComplete = () => {
-          dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
-        };
-
-        // Resume audio context and add PCM16 data directly
-        await audioStreamerRef.current!.resume();
-        audioStreamerRef.current!.addPCM16(audioData);
-      } catch (error) {
-        // Determine user-friendly error message
-        let userErrorMessage = 'Failed to generate speech';
-        if (error instanceof Error) {
-          if (error.message.includes('Invalid text')) {
-            userErrorMessage = 'Invalid text input for speech generation';
-          } else if (error.message.includes('too long')) {
-            userErrorMessage = 'Text is too long for speech generation';
-          } else if (error.message.includes('API failed')) {
-            userErrorMessage = 'Speech generation service is currently unavailable';
-          }
-        }
-
-        dispatch({ type: 'SET_ERROR', payload: userErrorMessage });
-        dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
+  const processTextToSpeech = useCallback(async (text: string) => {
+    try {
+      // Input validation
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        throw new Error('Invalid text input');
       }
-    },
-    []
-  );
+
+      if (text.length > 4096) {
+        throw new Error('Text too long for TTS processing');
+      }
+
+      // API request
+      const ttsResponse = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!ttsResponse.ok) {
+        throw new Error(`TTS API failed: ${ttsResponse.status}`);
+      }
+
+      const { audio } = await ttsResponse.json();
+
+      if (!audio) {
+        throw new Error('No audio data received from TTS API');
+      }
+
+      // PCM Audio processing
+      const audioData = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
+
+      dispatch({ type: 'SET_PLAYING_AUDIO', payload: true });
+
+      // Set up completion handler
+      audioStreamerRef.current!.onComplete = () => {
+        dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
+      };
+
+      // Resume audio context and add PCM16 data directly
+      await audioStreamerRef.current!.resume();
+      audioStreamerRef.current!.addPCM16(audioData);
+    } catch (error) {
+      // Determine user-friendly error message
+      let userErrorMessage = 'Failed to generate speech';
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid text')) {
+          userErrorMessage = 'Invalid text input for speech generation';
+        } else if (error.message.includes('too long')) {
+          userErrorMessage = 'Text is too long for speech generation';
+        } else if (error.message.includes('API failed')) {
+          userErrorMessage =
+            'Speech generation service is currently unavailable';
+        }
+      }
+
+      dispatch({ type: 'SET_ERROR', payload: userErrorMessage });
+      dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
+    }
+  }, []);
 
   // Connect to pipeline
   const connect = useCallback(async () => {
@@ -407,8 +399,32 @@ export function HybridPipelineProvider({
 
   // Toggle mute
   const toggleMute = useCallback(() => {
-    dispatch({ type: 'SET_MUTED', payload: !state.isMuted });
-  }, [state.isMuted]);
+    const newMutedState = !state.isMuted;
+    dispatch({ type: 'SET_MUTED', payload: newMutedState });
+
+    // Control VAD manager listening state based on mute status
+    if (vadManagerRef.current && state.isConnected) {
+      if (newMutedState) {
+        // Mute: stop listening but keep VAD manager active
+        vadManagerRef.current.stopListening();
+        dispatch({ type: 'SET_LISTENING', payload: false });
+      } else {
+        // Unmute: resume listening
+        vadManagerRef.current
+          .startListening()
+          .then(() => {
+            dispatch({ type: 'SET_LISTENING', payload: true });
+          })
+          .catch(error => {
+            console.error('Failed to resume listening after unmute:', error);
+            dispatch({
+              type: 'SET_ERROR',
+              payload: 'Failed to resume microphone',
+            });
+          });
+      }
+    }
+  }, [state.isMuted, state.isConnected]);
 
   // Send manual message
   const sendMessage = useCallback(

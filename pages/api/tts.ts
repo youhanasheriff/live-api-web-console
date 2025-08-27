@@ -33,6 +33,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Function to validate English-only text
+function isEnglishText(text: string): boolean {
+  // Check for non-Latin characters (basic validation)
+  const nonLatinRegex = /[^\x00-\x7F]/;
+  return !nonLatinRegex.test(text);
+}
+
 // Log OpenAI client initialization
 logger.info('OpenAI TTS client initialized', {
   hasApiKey: !!process.env.OPENAI_API_KEY,
@@ -65,12 +72,11 @@ export default async function handler(
   }
 
   try {
-    const { text, voice = 'nova' } = req.body;
+    const { text } = req.body;
 
     logger.debug('Request payload parsed', {
       requestId,
       textLength: text?.length || 0,
-      voice,
       hasText: !!text,
     });
 
@@ -103,40 +109,33 @@ export default async function handler(
         .json({ error: 'Text too long (max 4096 characters)' });
     }
 
-    const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
-    if (!validVoices.includes(voice)) {
-      logger.warning('Invalid voice parameter', {
+    // Validate English-only text
+    if (!isEnglishText(text)) {
+      logger.warning('Non-English text detected', {
         requestId,
-        voice,
-        validVoices,
+        textSample: text.substring(0, 100),
       });
-      return res
-        .status(400)
-        .json({
-          error: `Invalid voice. Must be one of: ${validVoices.join(', ')}`,
-        });
+      return res.status(400).json({ error: 'Only English text is supported' });
     }
 
     logger.info('Input validation passed, initiating TTS processing', {
       requestId,
       textLength: text.length,
-      voice,
-      model: 'tts-1-hd',
+      model: 'tts-1',
     });
 
     // OpenAI TTS API call
     const ttsStartTime = Date.now();
     logger.debug('Calling OpenAI TTS API', {
       requestId,
-      model: 'tts-1-hd',
-      voice,
+      model: 'tts-1',
       responseFormat: 'mp3',
       speed: 1.0,
     });
 
     const mp3 = await openai.audio.speech.create({
-      model: 'tts-1-hd',
-      voice: voice as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer',
+      model: 'tts-1',
+      voice: 'alloy',
       input: text,
       response_format: 'pcm',
       speed: 1.0,

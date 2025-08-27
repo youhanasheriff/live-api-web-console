@@ -50,20 +50,20 @@ export default async function handler(
 
     // Check for tool calls
     const functionCalls = response.functionCalls();
+    const textResponse = response.text();
+
     if (functionCalls && functionCalls.length > 0) {
       const endCallFunction = functionCalls.find(
         call => call.name === 'endCallTool'
       );
       if (endCallFunction) {
         return res.status(200).json({
-          response: 'Goodbye! The conversation has ended.',
+          response: textResponse + ' Goodbye! The conversation has ended.',
           shouldEndCall: true,
           toolCall: endCallFunction,
         });
       }
     }
-
-    const textResponse = response.text();
 
     res.status(200).json({
       response: textResponse,
