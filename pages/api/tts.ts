@@ -14,17 +14,18 @@ export default async function handler(
   }
 
   try {
-    const { text, voice = 'alloy' } = req.body;
+    const { text, voice = 'nova' } = req.body;
     
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
     }
 
     const mp3 = await openai.audio.speech.create({
-      model: 'tts-1',
+      model: 'tts-1-hd',
       voice: voice as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer',
       input: text,
       response_format: 'mp3',
+      speed: 1.0,
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());

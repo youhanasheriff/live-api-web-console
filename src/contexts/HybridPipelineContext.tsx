@@ -249,12 +249,12 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
   }, [state.chatHistory]);
 
   // Process text to speech
-  const processTextToSpeech = useCallback(async (text: string) => {
+  const processTextToSpeech = useCallback(async (text: string, voice: string = 'nova') => {
     try {
       const ttsResponse = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, voice }),
       });
 
       if (!ttsResponse.ok) {
