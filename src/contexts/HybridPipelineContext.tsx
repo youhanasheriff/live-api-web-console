@@ -52,6 +52,7 @@ type PipelineAction =
   | { type: 'SET_CURRENT_TRANSCRIPTION'; payload: string }
   | { type: 'ADD_TRANSCRIPTION'; payload: TranscriptionResult }
   | { type: 'ADD_CHAT_MESSAGE'; payload: ChatMessage }
+  | { type: 'RESET_CHAT_HISTORY' }
   | { type: 'SET_ERROR'; payload: string | null }
   | {
       type: 'SET_VAD_STATE';
@@ -100,6 +101,11 @@ function pipelineReducer(
       return {
         ...state,
         chatHistory: [...state.chatHistory, action.payload],
+      };
+    case 'RESET_CHAT_HISTORY':
+      return {
+        ...state,
+        chatHistory: [],
       };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
@@ -254,7 +260,10 @@ export function HybridPipelineProvider({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: text,
-            history: state.chatHistory,
+            conversationHistory: state.chatHistory.map(v => ({
+              role: v.role,
+              content: v.content
+            })),
           }),
         });
 
@@ -262,26 +271,37 @@ export function HybridPipelineProvider({
           throw new Error('Conversation API failed');
         }
 
-        const { response, shouldEndCall } = await conversationResponse.json();
+        const { response, shouldEndCall, conversationHistory } = await conversationResponse.json();
+
+        // Update conversation history if provided by API
+        if (conversationHistory && Array.isArray(conversationHistory)) {
+          // Clear current history and replace with updated history from API
+          dispatch({ type: 'RESET_CHAT_HISTORY' });
+          conversationHistory.forEach((message: ChatMessage) => {
+            dispatch({ type: 'ADD_CHAT_MESSAGE', payload: message });
+          });
+        } else {
+          // Fallback: manually add assistant message if no history provided
+          if (response.trim()) {
+            const assistantMessage: ChatMessage = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: response.trim(),
+              timestamp: Date.now(),
+            };
+            dispatch({ type: 'ADD_CHAT_MESSAGE', payload: assistantMessage });
+          }
+        }
 
         // Check for endCallTool
         if (shouldEndCall) {
-          // disconnect();
           console.log('end the call. this is the text response:', response);
+          // disconnect();
           // return;
         }
 
+        // Convert to speech
         if (response.trim()) {
-          // Add assistant message to chat
-          const assistantMessage: ChatMessage = {
-            id: Date.now().toString(),
-            role: 'assistant',
-            content: response.trim(),
-            timestamp: Date.now(),
-          };
-          dispatch({ type: 'ADD_CHAT_MESSAGE', payload: assistantMessage });
-
-          // Convert to speech
           await processTextToSpeech(response.trim());
         }
       } catch (error) {

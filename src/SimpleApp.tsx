@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect } from "react";
-import { HybridPipelineProvider } from "./contexts/HybridPipelineContext";
-import { TranscriptionDisplay } from "./components/TranscriptionDisplay";
-import { ChatHistory } from "./components/ChatHistory";
-import { TalkingAnimation } from "./components/TalkingAnimation";
-import HybridControlTray from "./components/HybridControlTray";
+import React, { useState, useEffect } from 'react';
+import { HybridPipelineProvider } from './contexts/HybridPipelineContext';
+import { TranscriptionDisplay } from './components/TranscriptionDisplay';
+import { ChatHistory } from './components/ChatHistory';
+import { TalkingAnimation } from './components/TalkingAnimation';
+import HybridControlTray from './components/HybridControlTray';
 
 function SimpleApp() {
   const [error, setError] = useState<string | null>(null);
@@ -27,18 +27,18 @@ function SimpleApp() {
 
   useEffect(() => {
     setIsClient(true);
-    
-    // Validate environment variables on client side
-    const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-    const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
 
-    if (typeof GEMINI_API_KEY !== "string" || !GEMINI_API_KEY) {
-      setError("REACT_APP_GEMINI_API_KEY is not set in environment variables");
+    // Validate environment variables on client side
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+    if (typeof GEMINI_API_KEY !== 'string' || !GEMINI_API_KEY) {
+      setError('GEMINI_API_KEY is not set in environment variables');
       return;
     }
 
-    if (typeof OPENAI_API_KEY !== "string" || !OPENAI_API_KEY) {
-      setError("REACT_APP_OPENAI_API_KEY is not set in environment variables");
+    if (typeof OPENAI_API_KEY !== 'string' || !OPENAI_API_KEY) {
+      setError('OPENAI_API_KEY is not set in environment variables');
       return;
     }
   }, []);
@@ -71,13 +71,13 @@ function SimpleApp() {
             <h1>AI Voice Assistant</h1>
             <p>Hybrid STT → Gemini → TTS Pipeline</p>
           </header>
-          
+
           <main className="main-content">
             <div className="left-panel">
               <TalkingAnimation />
               <HybridControlTray />
             </div>
-            
+
             <div className="right-panel">
               <TranscriptionDisplay />
               <ChatHistory />
