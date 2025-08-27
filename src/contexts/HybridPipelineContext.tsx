@@ -3,7 +3,14 @@
  * Manages STT → Gemini → TTS pipeline for voice conversations
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useRef, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react';
 import { VADManager, VADEvent } from '../lib/vad-manager';
 import { AudioStreamer } from '../lib/audio-streamer';
 
@@ -46,7 +53,10 @@ type PipelineAction =
   | { type: 'ADD_TRANSCRIPTION'; payload: TranscriptionResult }
   | { type: 'ADD_CHAT_MESSAGE'; payload: ChatMessage }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_VAD_STATE'; payload: { energy: number; isVoiceActive: boolean } }
+  | {
+      type: 'SET_VAD_STATE';
+      payload: { energy: number; isVoiceActive: boolean };
+    }
   | { type: 'RESET_STATE' };
 
 const initialState: PipelineState = {
@@ -63,7 +73,10 @@ const initialState: PipelineState = {
   isVoiceActive: false,
 };
 
-function pipelineReducer(state: PipelineState, action: PipelineAction): PipelineState {
+function pipelineReducer(
+  state: PipelineState,
+  action: PipelineAction
+): PipelineState {
   switch (action.type) {
     case 'SET_CONNECTED':
       return { ...state, isConnected: action.payload };
@@ -111,9 +124,15 @@ interface HybridPipelineContextType {
   sendMessage: (text: string) => Promise<void>;
 }
 
-const HybridPipelineContext = createContext<HybridPipelineContextType | null>(null);
+const HybridPipelineContext = createContext<HybridPipelineContextType | null>(
+  null
+);
 
-export function HybridPipelineProvider({ children }: { children: React.ReactNode }) {
+export function HybridPipelineProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [state, dispatch] = useReducer(pipelineReducer, initialState);
   const vadManagerRef = useRef<VADManager | null>(null);
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
@@ -128,24 +147,43 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
     };
   }, []);
 
-  // VAD event handler
-  const handleVADEvent = useCallback(async (event: VADEvent) => {
-    dispatch({
-      type: 'SET_VAD_STATE',
-      payload: {
-        energy: event.energy,
-        isVoiceActive: event.isVoiceActive || false,
-      },
-    });
+  // VAD event handler with microphone state management
+  const handleVADEvent = useCallback(
+    async (event: VADEvent) => {
+      dispatch({
+        type: 'SET_VAD_STATE',
+        payload: {
+          energy: event.energy,
+          isVoiceActive: event.isVoiceActive || false,
+        },
+      });
 
-    if (event.type === 'speechStart') {
-      dispatch({ type: 'SET_CURRENT_TRANSCRIPTION', payload: 'Listening...' });
-    } else if (event.type === 'speechEnd' && event.audioData) {
-      if (!state.isMuted) {
-        await processAudioChunk(event.audioData);
+      // Prevent microphone processing during AI audio playback
+      if (state.isPlayingAudio) {
+        console.log(
+          `[${new Date().toISOString()}] [INFO] [VAD] Microphone input blocked during AI audio playback`,
+          {
+            eventType: event.type,
+            isPlayingAudio: state.isPlayingAudio,
+            energy: event.energy,
+          }
+        );
+        return;
       }
-    }
-  }, [state.isMuted]);
+
+      if (event.type === 'speechStart') {
+        dispatch({
+          type: 'SET_CURRENT_TRANSCRIPTION',
+          payload: 'Listening...',
+        });
+      } else if (event.type === 'speechEnd' && event.audioData) {
+        if (!state.isMuted) {
+          await processAudioChunk(event.audioData);
+        }
+      }
+    },
+    [state.isMuted, state.isPlayingAudio]
+  );
 
   // Process audio chunk through STT
   const processAudioChunk = useCallback(async (audioData: Float32Array) => {
@@ -158,9 +196,11 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
       for (let i = 0; i < audioData.length; i++) {
         int16Array[i] = Math.max(-32768, Math.min(32767, audioData[i] * 32768));
       }
-      
+
       const audioBuffer = int16Array.buffer;
-      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+      const base64Audio = btoa(
+        String.fromCharCode(...new Uint8Array(audioBuffer))
+      );
 
       // Send to STT API
       const sttResponse = await fetch('/api/stt', {
@@ -174,7 +214,7 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
       }
 
       const { transcription, timestamp } = await sttResponse.json();
-      
+
       if (transcription.trim()) {
         const transcriptionResult: TranscriptionResult = {
           id: Date.now().toString(),
@@ -183,7 +223,7 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
         };
 
         dispatch({ type: 'ADD_TRANSCRIPTION', payload: transcriptionResult });
-        
+
         // Add user message to chat
         const userMessage: ChatMessage = {
           id: Date.now().toString(),
@@ -206,104 +246,347 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
   }, []);
 
   // Process conversation through Gemini
-  const processConversation = useCallback(async (text: string) => {
-    try {
-      const conversationResponse = await fetch('/api/conversation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: text,
-          history: state.chatHistory,
-        }),
-      });
+  const processConversation = useCallback(
+    async (text: string) => {
+      try {
+        const conversationResponse = await fetch('/api/conversation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            history: state.chatHistory,
+          }),
+        });
 
-      if (!conversationResponse.ok) {
-        throw new Error('Conversation API failed');
+        if (!conversationResponse.ok) {
+          throw new Error('Conversation API failed');
+        }
+
+        const { response, toolCalls } = await conversationResponse.json();
+
+        // Check for endCallTool
+        if (toolCalls?.some((call: any) => call.name === 'endCallTool')) {
+          disconnect();
+          return;
+        }
+
+        if (response.trim()) {
+          // Add assistant message to chat
+          const assistantMessage: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: response.trim(),
+            timestamp: Date.now(),
+          };
+          dispatch({ type: 'ADD_CHAT_MESSAGE', payload: assistantMessage });
+
+          // Convert to speech
+          await processTextToSpeech(response.trim());
+        }
+      } catch (error) {
+        console.error('Error in conversation:', error);
+        dispatch({
+          type: 'SET_ERROR',
+          payload: 'Failed to process conversation',
+        });
       }
+    },
+    [state.chatHistory]
+  );
 
-      const { response, toolCalls } = await conversationResponse.json();
-      
-      // Check for endCallTool
-      if (toolCalls?.some((call: any) => call.name === 'endCallTool')) {
-        disconnect();
-        return;
-      }
-
-      if (response.trim()) {
-        // Add assistant message to chat
-        const assistantMessage: ChatMessage = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: response.trim(),
-          timestamp: Date.now(),
-        };
-        dispatch({ type: 'ADD_CHAT_MESSAGE', payload: assistantMessage });
-
-        // Convert to speech
-        await processTextToSpeech(response.trim());
-      }
-    } catch (error) {
-      console.error('Error in conversation:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to process conversation' });
-    }
-  }, [state.chatHistory]);
+  // Frontend logger utility
+  const logger = {
+    debug: (message: string, data?: any) => {
+      console.log(
+        `[${new Date().toISOString()}] [DEBUG] [TTS-Frontend] ${message}`,
+        data || ''
+      );
+    },
+    info: (message: string, data?: any) => {
+      console.log(
+        `[${new Date().toISOString()}] [INFO] [TTS-Frontend] ${message}`,
+        data || ''
+      );
+    },
+    warning: (message: string, data?: any) => {
+      console.warn(
+        `[${new Date().toISOString()}] [WARNING] [TTS-Frontend] ${message}`,
+        data || ''
+      );
+    },
+    error: (message: string, error?: any) => {
+      console.error(
+        `[${new Date().toISOString()}] [ERROR] [TTS-Frontend] ${message}`,
+        error || ''
+      );
+    },
+  };
 
   // Process text to speech
-  const processTextToSpeech = useCallback(async (text: string, voice: string = 'nova') => {
-    try {
-      const ttsResponse = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice }),
+  const processTextToSpeech = useCallback(
+    async (text: string, voice: string = 'nova') => {
+      const requestId = `tts_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+      const startTime = Date.now();
+
+      logger.info('TTS processing initiated', {
+        requestId,
+        textLength: text.length,
+        voice,
+        timestamp: startTime,
       });
 
-      if (!ttsResponse.ok) {
-        throw new Error('TTS API failed');
-      }
+      try {
+        // Input validation
+        if (!text || typeof text !== 'string') {
+          logger.warning('Invalid text input for TTS', {
+            requestId,
+            textType: typeof text,
+            textLength: text?.length || 0,
+            hasText: !!text,
+          });
+          throw new Error('Invalid text input');
+        }
 
-      const { audio } = await ttsResponse.json();
-      
-      // Decode base64 audio and play
-      const audioData = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
-      
-      dispatch({ type: 'SET_PLAYING_AUDIO', payload: true });
-      
-      // Set up completion handler
-      audioStreamerRef.current!.onComplete = () => {
+        if (text.trim().length === 0) {
+          logger.warning('Empty text provided for TTS', { requestId });
+          throw new Error('Text cannot be empty');
+        }
+
+        if (text.length > 4096) {
+          logger.warning('Text exceeds maximum length for TTS', {
+            requestId,
+            textLength: text.length,
+            maxLength: 4096,
+          });
+          throw new Error('Text too long for TTS processing');
+        }
+
+        const validVoices = [
+          'alloy',
+          'echo',
+          'fable',
+          'onyx',
+          'nova',
+          'shimmer',
+        ];
+        if (!validVoices.includes(voice)) {
+          logger.warning('Invalid voice selection', {
+            requestId,
+            voice,
+            validVoices,
+          });
+          voice = 'nova'; // Fallback to default
+        }
+
+        logger.debug('TTS input validation passed', {
+          requestId,
+          validatedText:
+            text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+          voice,
+        });
+
+        // API request
+        logger.debug('Sending TTS API request', {
+          requestId,
+          endpoint: '/api/tts',
+          method: 'POST',
+          payload: { textLength: text.length, voice },
+        });
+
+        const apiStartTime = Date.now();
+        const ttsResponse = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, voice }),
+        });
+
+        const apiEndTime = Date.now();
+        logger.info('TTS API response received', {
+          requestId,
+          status: ttsResponse.status,
+          statusText: ttsResponse.statusText,
+          apiResponseTime: apiEndTime - apiStartTime,
+          headers: {
+            contentType: ttsResponse.headers.get('content-type'),
+            contentLength: ttsResponse.headers.get('content-length'),
+          },
+        });
+
+        if (!ttsResponse.ok) {
+          const errorData = await ttsResponse.json().catch(() => ({}));
+          logger.error('TTS API request failed', {
+            requestId,
+            status: ttsResponse.status,
+            statusText: ttsResponse.statusText,
+            errorData,
+            apiResponseTime: apiEndTime - apiStartTime,
+          });
+          throw new Error(
+            `TTS API failed: ${ttsResponse.status} ${ttsResponse.statusText}`
+          );
+        }
+
+        const responseData = await ttsResponse.json();
+        logger.debug('TTS API response parsed', {
+          requestId,
+          hasAudio: !!responseData.audio,
+          audioLength: responseData.audio?.length || 0,
+          format: responseData.format,
+          processingTime: responseData.processingTime,
+        });
+
+        const { audio } = responseData;
+
+        if (!audio) {
+          logger.error('No audio data in TTS response', {
+            requestId,
+            responseData: Object.keys(responseData),
+          });
+          throw new Error('No audio data received from TTS API');
+        }
+
+        // PCM Audio processing
+        logger.debug('Processing PCM audio data for playback', {
+          requestId,
+          base64Length: audio.length,
+        });
+
+        let audioData: Uint8Array;
+        try {
+          audioData = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
+          logger.debug('PCM audio data decoded successfully', {
+            requestId,
+            decodedSize: audioData.length,
+            originalBase64Size: audio.length,
+          });
+        } catch (decodeError) {
+          logger.error('Failed to decode base64 PCM audio data', {
+            requestId,
+            error: decodeError,
+            base64Length: audio.length,
+          });
+          throw new Error('Failed to decode PCM audio data');
+        }
+
+        // PCM Audio playback setup
+        logger.info('Starting PCM audio playback', {
+          requestId,
+          audioDataSize: audioData.length,
+        });
+
+        dispatch({ type: 'SET_PLAYING_AUDIO', payload: true });
+
+        // Set up completion handler
+        audioStreamerRef.current!.onComplete = () => {
+          const playbackEndTime = Date.now();
+          logger.info('PCM audio playback completed', {
+            requestId,
+            totalProcessingTime: playbackEndTime - startTime,
+            playbackDuration: playbackEndTime - (apiEndTime || startTime),
+          });
+          dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
+        };
+
+        // Resume audio context and add PCM16 data directly
+        try {
+          await audioStreamerRef.current!.resume();
+          logger.debug('Audio context resumed for PCM playback', { requestId });
+
+          audioStreamerRef.current!.addPCM16(audioData);
+          logger.debug('PCM16 audio data added to streamer', {
+            requestId,
+            dataSize: audioData.length,
+          });
+        } catch (playbackError) {
+          logger.error('PCM audio playback failed', {
+            requestId,
+            error: playbackError,
+          });
+          dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
+          throw new Error('Failed to play PCM audio');
+        }
+
+        const totalTime = Date.now() - startTime;
+        logger.info('TTS processing completed successfully', {
+          requestId,
+          totalProcessingTime: totalTime,
+          textLength: text.length,
+          voice,
+        });
+      } catch (error) {
+        const totalTime = Date.now() - startTime;
+
+        logger.error('TTS processing failed', {
+          requestId,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : error,
+          totalProcessingTime: totalTime,
+          textLength: text.length,
+          voice,
+        });
+
+        // Determine user-friendly error message
+        let userErrorMessage = 'Failed to generate speech';
+        if (error instanceof Error) {
+          if (error.message.includes('Invalid text')) {
+            userErrorMessage = 'Invalid text input for speech generation';
+          } else if (error.message.includes('too long')) {
+            userErrorMessage = 'Text is too long for speech generation';
+          } else if (error.message.includes('API failed')) {
+            userErrorMessage =
+              'Speech generation service is currently unavailable';
+          } else if (error.message.includes('decode')) {
+            userErrorMessage = 'Audio processing failed';
+          } else if (error.message.includes('play')) {
+            userErrorMessage = 'Audio playback failed';
+          }
+        }
+
+        dispatch({ type: 'SET_ERROR', payload: userErrorMessage });
         dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
-      };
-      
-      // Resume audio context and add PCM data
-      await audioStreamerRef.current!.resume();
-      audioStreamerRef.current!.addPCM16(audioData);
-    } catch (error) {
-      console.error('Error in TTS:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to generate speech' });
-      dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
-    }
-  }, []);
+
+        logger.error('Error state updated', {
+          requestId,
+          userErrorMessage,
+          playbackStopped: true,
+        });
+      }
+    },
+    []
+  );
 
   // Connect to pipeline
   const connect = useCallback(async () => {
     try {
       dispatch({ type: 'SET_ERROR', payload: null });
-      
+
       // Initialize VAD manager
       vadManagerRef.current = new VADManager({
         energyThreshold: 0.01,
         silenceThreshold: 800,
         minSpeechDuration: 500,
       });
-      
+
       vadManagerRef.current.addEventListener(handleVADEvent);
       await vadManagerRef.current.initialize();
       await vadManagerRef.current.startListening();
-      
+
       dispatch({ type: 'SET_CONNECTED', payload: true });
       dispatch({ type: 'SET_LISTENING', payload: true });
     } catch (error) {
       console.error('Failed to connect:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to connect to microphone' });
+      dispatch({
+        type: 'SET_ERROR',
+        payload: 'Failed to connect to microphone',
+      });
     }
   }, [handleVADEvent]);
 
@@ -313,11 +596,11 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
       vadManagerRef.current.destroy();
       vadManagerRef.current = null;
     }
-    
+
     if (audioStreamerRef.current) {
       audioStreamerRef.current.stop();
     }
-    
+
     dispatch({ type: 'RESET_STATE' });
   }, []);
 
@@ -327,16 +610,19 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
   }, [state.isMuted]);
 
   // Send manual message
-  const sendMessage = useCallback(async (text: string) => {
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: text,
-      timestamp: Date.now(),
-    };
-    dispatch({ type: 'ADD_CHAT_MESSAGE', payload: userMessage });
-    await processConversation(text);
-  }, [processConversation]);
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: text,
+        timestamp: Date.now(),
+      };
+      dispatch({ type: 'ADD_CHAT_MESSAGE', payload: userMessage });
+      await processConversation(text);
+    },
+    [processConversation]
+  );
 
   const contextValue: HybridPipelineContextType = {
     state,
@@ -356,7 +642,9 @@ export function HybridPipelineProvider({ children }: { children: React.ReactNode
 export function useHybridPipeline() {
   const context = useContext(HybridPipelineContext);
   if (!context) {
-    throw new Error('useHybridPipeline must be used within a HybridPipelineProvider');
+    throw new Error(
+      'useHybridPipeline must be used within a HybridPipelineProvider'
+    );
   }
   return context;
 }
