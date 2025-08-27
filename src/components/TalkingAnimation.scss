@@ -1,0 +1,318 @@
+/**
+ * Talking Animation Styles
+ */
+
+.talking-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  
+  .avatar-svg {
+    filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s ease;
+    
+    .background-circle {
+      transition: all 0.3s ease;
+    }
+    
+    .face {
+      transition: all 0.2s ease;
+    }
+    
+    .eye {
+      transition: all 0.2s ease;
+      
+      &.left-eye, &.right-eye {
+        animation: blink 4s ease-in-out infinite;
+      }
+    }
+    
+    .mouth-group {
+      .mouth {
+        transition: opacity 0.2s ease;
+        
+        &.closed {
+          opacity: 1;
+        }
+        
+        &.open {
+          opacity: 0;
+        }
+        
+        &.teeth {
+          opacity: 0;
+        }
+      }
+    }
+    
+    .sound-waves {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      
+      .wave {
+        animation: soundWave 1s ease-in-out infinite;
+        
+        &.wave-1 {
+          animation-delay: 0s;
+        }
+        
+        &.wave-2 {
+          animation-delay: 0.2s;
+        }
+        
+        &.wave-3 {
+          animation-delay: 0.4s;
+        }
+      }
+    }
+    
+    .status-indicator {
+      transition: all 0.3s ease;
+      
+      .status-stop-1 {
+        stop-color: #f44336;
+      }
+      
+      .status-stop-2 {
+        stop-color: #d32f2f;
+      }
+    }
+  }
+  
+  // Connected state
+  &.connected {
+    .avatar-svg {
+      .background-circle {
+        filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.3));
+      }
+      
+      .status-indicator {
+        animation: pulse 2s ease-in-out infinite;
+        
+        .status-stop-1 {
+          stop-color: #4CAF50;
+        }
+        
+        .status-stop-2 {
+          stop-color: #2E7D32;
+        }
+      }
+    }
+  }
+  
+  // Active talking state
+  &.active {
+    .avatar-svg {
+      animation: talking 0.5s ease-in-out infinite alternate;
+      
+      .face {
+        animation: faceGlow 1s ease-in-out infinite alternate;
+      }
+      
+      .mouth-group {
+        .mouth {
+          &.closed {
+            opacity: 0;
+          }
+          
+          &.open {
+            opacity: 1;
+            animation: mouthTalk 0.3s ease-in-out infinite alternate;
+          }
+          
+          &.teeth {
+            opacity: 1;
+          }
+        }
+      }
+      
+      .sound-waves {
+        opacity: 1;
+      }
+      
+      .eye {
+        animation: eyeSquint 0.8s ease-in-out infinite alternate;
+      }
+    }
+  }
+  
+  .animation-status {
+    text-align: center;
+    
+    .status-text {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: color 0.3s ease;
+    }
+    
+    .audio-visualizer {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 3px;
+      height: 20px;
+      
+      .bar {
+        width: 3px;
+        background: linear-gradient(to top, #4CAF50, #8BC34A);
+        border-radius: 2px;
+        animation: audioBar 0.6s ease-in-out infinite alternate;
+        
+        &:nth-child(1) { animation-delay: 0s; }
+        &:nth-child(2) { animation-delay: 0.1s; }
+        &:nth-child(3) { animation-delay: 0.2s; }
+        &:nth-child(4) { animation-delay: 0.3s; }
+        &:nth-child(5) { animation-delay: 0.4s; }
+      }
+    }
+  }
+}
+
+// Connected state status text color
+.talking-animation.connected {
+  .animation-status .status-text {
+    color: #4CAF50;
+  }
+}
+
+// Active state status text color
+.talking-animation.active {
+  .animation-status .status-text {
+    color: #FFC107;
+  }
+}
+
+// Animations
+@keyframes talking {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    transform: scale(1.02) rotate(0.5deg);
+  }
+}
+
+@keyframes faceGlow {
+  0% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes mouthTalk {
+  0% {
+    ry: 8;
+    cy: 115;
+  }
+  100% {
+    ry: 12;
+    cy: 117;
+  }
+}
+
+@keyframes eyeSquint {
+  0% {
+    ry: 6;
+  }
+  100% {
+    ry: 4;
+  }
+}
+
+@keyframes blink {
+  0%, 90%, 100% {
+    ry: 6;
+  }
+  95% {
+    ry: 1;
+  }
+}
+
+@keyframes soundWave {
+  0% {
+    opacity: 0;
+    stroke-width: 1;
+  }
+  50% {
+    opacity: 1;
+    stroke-width: 3;
+  }
+  100% {
+    opacity: 0;
+    stroke-width: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    r: 8;
+    opacity: 1;
+  }
+  50% {
+    r: 12;
+    opacity: 0.7;
+  }
+  100% {
+    r: 8;
+    opacity: 1;
+  }
+}
+
+@keyframes audioBar {
+  0% {
+    height: 4px;
+  }
+  100% {
+    height: 16px;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .talking-animation {
+    padding: 16px;
+    
+    .avatar-svg {
+      width: 150px;
+      height: 150px;
+    }
+    
+    .animation-status {
+      .status-text {
+        font-size: 12px;
+      }
+      
+      .audio-visualizer {
+        height: 16px;
+        
+        .bar {
+          width: 2px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .talking-animation {
+    .avatar-svg {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .animation-status {
+      .status-text {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+}

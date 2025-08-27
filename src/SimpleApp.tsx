@@ -14,28 +14,42 @@
  * limitations under the License.
  */
 
-import { useState } from "react";
-import "./App.scss";
+import React, { useState, useEffect } from "react";
 import { HybridPipelineProvider } from "./contexts/HybridPipelineContext";
 import { TranscriptionDisplay } from "./components/TranscriptionDisplay";
 import { ChatHistory } from "./components/ChatHistory";
 import { TalkingAnimation } from "./components/TalkingAnimation";
 import HybridControlTray from "./components/HybridControlTray";
 
-// Validate environment variables
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY as string;
-const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY as string;
-
-if (typeof GEMINI_API_KEY !== "string") {
-  throw new Error("set REACT_APP_GEMINI_API_KEY in .env");
-}
-
-if (typeof OPENAI_API_KEY !== "string") {
-  throw new Error("set REACT_APP_OPENAI_API_KEY in .env");
-}
-
-function App() {
+function SimpleApp() {
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    
+    // Validate environment variables on client side
+    const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+    const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+
+    if (typeof GEMINI_API_KEY !== "string" || !GEMINI_API_KEY) {
+      setError("REACT_APP_GEMINI_API_KEY is not set in environment variables");
+      return;
+    }
+
+    if (typeof OPENAI_API_KEY !== "string" || !OPENAI_API_KEY) {
+      setError("REACT_APP_OPENAI_API_KEY is not set in environment variables");
+      return;
+    }
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="App">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -75,4 +89,4 @@ function App() {
   );
 }
 
-export default App;
+export default SimpleApp;

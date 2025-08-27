@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "dependencies": {
     "@google/genai": "^0.14.0",
+    "@google/generative-ai": "^0.21.0",
     "classnames": "^2.5.1",
     "dotenv-flow": "^4.1.0",
     "eventemitter3": "^5.0.1",
     "lodash": "^4.17.21",
+    "next": "^14.0.0",
+    "openai": "^4.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
@@ -21,9 +24,12 @@
     "zustand": "^5.0.1"
   },
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "start-cra": "react-scripts start",
     "start-https": "HTTPS=true react-scripts start",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build-cra": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

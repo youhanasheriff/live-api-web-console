@@ -1,0 +1,264 @@
+/**
+ * HybridControlTray Styles
+ * Control buttons and status indicators for the hybrid pipeline
+ */
+
+.hybrid-control-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 280px;
+
+  .control-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .call-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-height: 56px;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      &.connected {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      }
+
+      &.listening {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        animation: pulse 2s infinite;
+      }
+
+      &.processing {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        animation: processing 1.5s infinite;
+      }
+
+      &.playing {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        animation: glow 2s infinite alternate;
+      }
+
+      .icon {
+        font-size: 1.25rem;
+      }
+
+      .text {
+        font-size: 1rem;
+      }
+    }
+
+    .mute-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &.muted {
+        background: rgba(255, 107, 107, 0.2);
+        border-color: rgba(255, 107, 107, 0.4);
+        color: #ff6b6b;
+      }
+
+      &.unmuted {
+        background: rgba(56, 239, 125, 0.2);
+        border-color: rgba(56, 239, 125, 0.4);
+        color: #38ef7d;
+      }
+
+      .icon {
+        font-size: 1rem;
+      }
+
+      .text {
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .status-indicators {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+
+      .indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+
+        &.active {
+          background: #38ef7d;
+          box-shadow: 0 0 10px rgba(56, 239, 125, 0.5);
+          animation: pulse-indicator 2s infinite;
+        }
+
+        &.processing {
+          background: #f093fb;
+          animation: processing-indicator 1s infinite;
+        }
+
+        &.playing {
+          background: #4facfe;
+          animation: playing-indicator 1.5s infinite;
+        }
+      }
+
+      .label {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes processing {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+  }
+  100% {
+    box-shadow: 0 8px 30px rgba(79, 172, 254, 0.8);
+  }
+}
+
+@keyframes pulse-indicator {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes processing-indicator {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+@keyframes playing-indicator {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .hybrid-control-tray {
+    min-width: 240px;
+    padding: 1rem;
+    gap: 1rem;
+
+    .control-buttons {
+      .call-button {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
+        min-height: 48px;
+
+        .icon {
+          font-size: 1.1rem;
+        }
+      }
+
+      .mute-button {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    .status-indicators {
+      gap: 0.5rem;
+
+      .status-item {
+        .indicator {
+          width: 10px;
+          height: 10px;
+        }
+
+        .label {
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+}
