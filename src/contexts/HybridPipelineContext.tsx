@@ -142,7 +142,6 @@ export function HybridPipelineProvider({
   const [state, dispatch] = useReducer(pipelineReducer, initialState);
   const vadManagerRef = useRef<VADManager | null>(null);
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
-  const processingAudioRef = useRef<Float32Array | null>(null);
 
   // Initialize audio streamer
   useEffect(() => {
@@ -152,168 +151,6 @@ export function HybridPipelineProvider({
       audioStreamerRef.current?.stop();
     };
   }, []);
-
-  // VAD event handler with microphone state management
-  const handleVADEvent = useCallback(
-    async (event: VADEvent) => {
-      dispatch({
-        type: 'SET_VAD_STATE',
-        payload: {
-          energy: event.energy,
-          isVoiceActive: event.isVoiceActive || false,
-        },
-      });
-
-      // Prevent microphone processing during AI audio playback
-      if (state.isPlayingAudio) {
-        console.log(
-          `[${new Date().toISOString()}] [INFO] [VAD] Microphone input blocked during AI audio playback`,
-          {
-            eventType: event.type,
-            isPlayingAudio: state.isPlayingAudio,
-            energy: event.energy,
-          }
-        );
-        return;
-      }
-
-      if (event.type === 'speechStart') {
-        dispatch({
-          type: 'SET_CURRENT_TRANSCRIPTION',
-          payload: 'Listening...',
-        });
-      } else if (event.type === 'speechEnd' && event.audioData) {
-        if (!state.isMuted) {
-          await processAudioChunk(event.audioData);
-        }
-      }
-    },
-    [state.isMuted, state.isPlayingAudio]
-  );
-
-  // Process audio chunk through STT
-  const processAudioChunk = useCallback(async (audioData: Float32Array) => {
-    try {
-      dispatch({ type: 'SET_PROCESSING', payload: true });
-      dispatch({ type: 'SET_CURRENT_TRANSCRIPTION', payload: 'Processing...' });
-
-      // Convert Float32Array to base64 for API
-      const int16Array = new Int16Array(audioData.length);
-      for (let i = 0; i < audioData.length; i++) {
-        int16Array[i] = Math.max(-32768, Math.min(32767, audioData[i] * 32768));
-      }
-
-      const audioBuffer = int16Array.buffer;
-      const base64Audio = btoa(
-        String.fromCharCode(...new Uint8Array(audioBuffer))
-      );
-
-      // Send to STT API
-      const sttResponse = await fetch('/api/stt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audioData: base64Audio }),
-      });
-
-      if (!sttResponse.ok) {
-        throw new Error('STT API failed');
-      }
-
-      const { transcription, timestamp } = await sttResponse.json();
-
-      if (transcription.trim()) {
-        const transcriptionResult: TranscriptionResult = {
-          id: Date.now().toString(),
-          text: transcription.trim(),
-          timestamp,
-        };
-
-        dispatch({ type: 'ADD_TRANSCRIPTION', payload: transcriptionResult });
-
-        // Add user message to chat
-        const userMessage: ChatMessage = {
-          id: Date.now().toString(),
-          role: 'user',
-          content: transcription.trim(),
-          timestamp: Date.now(),
-        };
-        dispatch({ type: 'ADD_CHAT_MESSAGE', payload: userMessage });
-
-        // Send to Gemini for response
-        await processConversation(transcription.trim());
-      }
-    } catch (error) {
-      console.error('Error processing audio:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to process audio' });
-    } finally {
-      dispatch({ type: 'SET_PROCESSING', payload: false });
-      dispatch({ type: 'SET_CURRENT_TRANSCRIPTION', payload: '' });
-    }
-  }, []);
-
-  // Process conversation through Gemini
-  const processConversation = useCallback(
-    async (text: string) => {
-      try {
-        const conversationResponse = await fetch('/api/conversation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            conversationHistory: state.chatHistory.map(v => ({
-              role: v.role,
-              content: v.content
-            })),
-          }),
-        });
-
-        if (!conversationResponse.ok) {
-          throw new Error('Conversation API failed');
-        }
-
-        const { response, shouldEndCall, conversationHistory } = await conversationResponse.json();
-
-        // Update conversation history if provided by API
-        if (conversationHistory && Array.isArray(conversationHistory)) {
-          // Clear current history and replace with updated history from API
-          dispatch({ type: 'RESET_CHAT_HISTORY' });
-          conversationHistory.forEach((message: ChatMessage) => {
-            dispatch({ type: 'ADD_CHAT_MESSAGE', payload: message });
-          });
-        } else {
-          // Fallback: manually add assistant message if no history provided
-          if (response.trim()) {
-            const assistantMessage: ChatMessage = {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: response.trim(),
-              timestamp: Date.now(),
-            };
-            dispatch({ type: 'ADD_CHAT_MESSAGE', payload: assistantMessage });
-          }
-        }
-
-        // Check for endCallTool
-        if (shouldEndCall) {
-          console.log('end the call. this is the text response:', response);
-          // disconnect();
-          // return;
-        }
-
-        // Convert to speech
-        if (response.trim()) {
-          await processTextToSpeech(response.trim());
-        }
-      } catch (error) {
-        console.error('Error in conversation:', error);
-        dispatch({
-          type: 'SET_ERROR',
-          payload: 'Failed to process conversation',
-        });
-      }
-    },
-    [state.chatHistory]
-  );
 
   // Process text to speech
   const processTextToSpeech = useCallback(async (text: string) => {
@@ -375,6 +212,178 @@ export function HybridPipelineProvider({
       dispatch({ type: 'SET_PLAYING_AUDIO', payload: false });
     }
   }, []);
+
+  // Process conversation through Gemini
+  const processConversation = useCallback(
+    async (text: string) => {
+      try {
+        const conversationResponse = await fetch('/api/conversation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            conversationHistory: state.chatHistory.map(v => ({
+              role: v.role,
+              content: v.content,
+            })),
+          }),
+        });
+
+        if (!conversationResponse.ok) {
+          throw new Error('Conversation API failed');
+        }
+
+        const { response, shouldEndCall, conversationHistory } =
+          await conversationResponse.json();
+
+        // Update conversation history if provided by API
+        if (conversationHistory && Array.isArray(conversationHistory)) {
+          // Clear current history and replace with updated history from API
+          dispatch({ type: 'RESET_CHAT_HISTORY' });
+          conversationHistory.forEach((message: ChatMessage) => {
+            dispatch({ type: 'ADD_CHAT_MESSAGE', payload: message });
+          });
+        } else {
+          // Fallback: manually add assistant message if no history provided
+          if (response.trim()) {
+            const assistantMessage: ChatMessage = {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: response.trim(),
+              timestamp: Date.now(),
+            };
+            dispatch({ type: 'ADD_CHAT_MESSAGE', payload: assistantMessage });
+          }
+        }
+
+        // Check for endCallTool
+        if (shouldEndCall) {
+          console.log('end the call. this is the text response:', response);
+          // disconnect();
+          // return;
+        }
+
+        // Convert to speech
+        if (response.trim()) {
+          await processTextToSpeech(response.trim());
+        }
+      } catch (error) {
+        console.error('Error in conversation:', error);
+        dispatch({
+          type: 'SET_ERROR',
+          payload: 'Failed to process conversation',
+        });
+      }
+    },
+    [processTextToSpeech, state.chatHistory]
+  );
+
+  // Process audio chunk through STT
+  const processAudioChunk = useCallback(
+    async (audioData: Float32Array) => {
+      try {
+        dispatch({ type: 'SET_PROCESSING', payload: true });
+        dispatch({
+          type: 'SET_CURRENT_TRANSCRIPTION',
+          payload: 'Processing...',
+        });
+
+        // Convert Float32Array to base64 for API
+        const int16Array = new Int16Array(audioData.length);
+        for (let i = 0; i < audioData.length; i++) {
+          int16Array[i] = Math.max(
+            -32768,
+            Math.min(32767, audioData[i] * 32768)
+          );
+        }
+
+        const audioBuffer = int16Array.buffer;
+        const base64Audio = btoa(
+          String.fromCharCode(...new Uint8Array(audioBuffer))
+        );
+
+        // Send to STT API
+        const sttResponse = await fetch('/api/stt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audioData: base64Audio }),
+        });
+
+        if (!sttResponse.ok) {
+          throw new Error('STT API failed');
+        }
+
+        const { transcription, timestamp } = await sttResponse.json();
+
+        if (transcription.trim()) {
+          const transcriptionResult: TranscriptionResult = {
+            id: Date.now().toString(),
+            text: transcription.trim(),
+            timestamp,
+          };
+
+          dispatch({ type: 'ADD_TRANSCRIPTION', payload: transcriptionResult });
+
+          // Add user message to chat
+          const userMessage: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: transcription.trim(),
+            timestamp: Date.now(),
+          };
+          dispatch({ type: 'ADD_CHAT_MESSAGE', payload: userMessage });
+
+          // Send to Gemini for response
+          await processConversation(transcription.trim());
+        }
+      } catch (error) {
+        console.error('Error processing audio:', error);
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to process audio' });
+      } finally {
+        dispatch({ type: 'SET_PROCESSING', payload: false });
+        dispatch({ type: 'SET_CURRENT_TRANSCRIPTION', payload: '' });
+      }
+    },
+    [processConversation]
+  );
+
+  // VAD event handler with microphone state management
+  const handleVADEvent = useCallback(
+    async (event: VADEvent) => {
+      dispatch({
+        type: 'SET_VAD_STATE',
+        payload: {
+          energy: event.energy,
+          isVoiceActive: event.isVoiceActive || false,
+        },
+      });
+
+      // Prevent microphone processing during AI audio playback
+      if (state.isPlayingAudio) {
+        console.log(
+          `[${new Date().toISOString()}] [INFO] [VAD] Microphone input blocked during AI audio playback`,
+          {
+            eventType: event.type,
+            isPlayingAudio: state.isPlayingAudio,
+            energy: event.energy,
+          }
+        );
+        return;
+      }
+
+      if (event.type === 'speechStart') {
+        dispatch({
+          type: 'SET_CURRENT_TRANSCRIPTION',
+          payload: 'Listening...',
+        });
+      } else if (event.type === 'speechEnd' && event.audioData) {
+        if (!state.isMuted) {
+          await processAudioChunk(event.audioData);
+        }
+      }
+    },
+    [processAudioChunk, state.isMuted, state.isPlayingAudio]
+  );
 
   // Connect to pipeline
   const connect = useCallback(async () => {
@@ -449,6 +458,18 @@ export function HybridPipelineProvider({
   // Send manual message
   const sendMessage = useCallback(
     async (text: string) => {
+      // Prevent manual input during AI speech output
+      if (state.isPlayingAudio) {
+        console.log(
+          `[${new Date().toISOString()}] [INFO] [MANUAL_INPUT] Manual message blocked during AI audio playback`,
+          {
+            messageLength: text.length,
+            isPlayingAudio: state.isPlayingAudio,
+          }
+        );
+        return;
+      }
+
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'user',
@@ -458,7 +479,7 @@ export function HybridPipelineProvider({
       dispatch({ type: 'ADD_CHAT_MESSAGE', payload: userMessage });
       await processConversation(text);
     },
-    [processConversation]
+    [processConversation, state.isPlayingAudio]
   );
 
   const contextValue: HybridPipelineContextType = {

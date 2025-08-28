@@ -14,41 +14,14 @@
  * limitations under the License.
  */
 
-import { useState } from "react";
-import "./App.scss";
-import { HybridPipelineProvider } from "./contexts/HybridPipelineContext";
-import { TranscriptionDisplay } from "./components/TranscriptionDisplay";
-import { ChatHistory } from "./components/ChatHistory";
-import { TalkingAnimation } from "./components/TalkingAnimation";
-import HybridControlTray from "./components/HybridControlTray";
+import React from 'react';
+import { HybridPipelineProvider } from './contexts/HybridPipelineContext';
+import { TranscriptionDisplay } from './components/TranscriptionDisplay';
+import { ChatHistory } from './components/ChatHistory';
+import { TalkingAnimation } from './components/TalkingAnimation';
+import HybridControlTray from './components/HybridControlTray';
 
-// Validate environment variables
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY as string;
-const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY as string;
-
-if (typeof GEMINI_API_KEY !== "string") {
-  throw new Error("set REACT_APP_GEMINI_API_KEY in .env");
-}
-
-if (typeof OPENAI_API_KEY !== "string") {
-  throw new Error("set REACT_APP_OPENAI_API_KEY in .env");
-}
-
-function App() {
-  const [error, setError] = useState<string | null>(null);
-
-  if (error) {
-    return (
-      <div className="App error-state">
-        <div className="error-message">
-          <h2>Configuration Error</h2>
-          <p>{error}</p>
-          <button onClick={() => setError(null)}>Retry</button>
-        </div>
-      </div>
-    );
-  }
-
+function SimpleApp() {
   return (
     <div className="App">
       <HybridPipelineProvider>
@@ -57,13 +30,13 @@ function App() {
             <h1>AI Voice Assistant</h1>
             <p>Hybrid STT → Gemini → TTS Pipeline</p>
           </header>
-          
+
           <main className="main-content">
             <div className="left-panel">
               <TalkingAnimation />
               <HybridControlTray />
             </div>
-            
+
             <div className="right-panel">
               <TranscriptionDisplay />
               <ChatHistory />
@@ -75,4 +48,4 @@ function App() {
   );
 }
 
-export default App;
+export default SimpleApp;

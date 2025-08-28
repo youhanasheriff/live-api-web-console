@@ -18,16 +18,16 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 
 // Dynamically import SimpleApp component to avoid SSR issues
-const SimpleApp = dynamic(() => import('../src/SimpleApp'), {
+const HybridApp = dynamic(() => import('../src/HybridApp'), {
   ssr: false,
   loading: () => (
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <h1>AI Voice Assistant</h1>
       <p>Loading...</p>
     </div>
-  )
+  ),
 });
 
 export default function Home() {
-  return <SimpleApp />;
+  return <HybridApp />;
 }
